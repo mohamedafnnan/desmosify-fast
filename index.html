@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Desmosify Fast</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Desmosify <span>fast</span></h1>
+        <p class="sub">Video to Desmos line art. Everything runs in your browser, in parallel.</p>
+      </header>
+
+      <section class="card">
+        <label id="drop" class="drop" for="file">
+          <input id="file" type="file" accept="video/*,.mp4,.mov,.webm,.mkv" />
+          <span id="fileName">Drop a video here or click to select</span>
+          <small id="fileInfo"></small>
+        </label>
+
+        <div class="grid">
+          <label>Size
+            <select id="size"></select>
+          </label>
+          <label title="Trace resolution as a multiple of the output size">Detail ×
+            <input id="detail" type="number" value="1" min="0.25" max="2" step="0.25" />
+          </label>
+          <label>Line width
+            <input id="lineWidth" type="number" value="3" min="1" max="24" step="1" />
+          </label>
+          <label title="Worker threads used for tracing">Threads
+            <input id="threads" type="number" min="1" max="32" step="1" />
+          </label>
+          <label class="slider" title="Higher keeps fewer, stronger edges">
+            <span class="slider-head"><span>Edge cutoff</span><output id="cutoffValue">0.10</output></span>
+            <input id="cutoff" type="range" value="0.1" min="0" max="1" step="0.05" />
+          </label>
+        </div>
+
+        <div class="toggles">
+          <label class="toggle"><input id="smooth" type="checkbox" checked /> Smooth curves</label>
+          <label class="toggle"><input id="grid" type="checkbox" checked /> Desmos grid</label>
+          <label class="toggle" title="Frames that barely changed reuse the previous trace"><input id="dedup" type="checkbox" checked /> Skip repeated frames</label>
+          <label class="toggle" title="Fastest and smallest: repeated frames are merged into longer frames"><input id="vfr" type="checkbox" /> Variable frame rate</label>
+          <label class="toggle"><input id="audio" type="checkbox" /> Keep audio</label>
+        </div>
+
+        <div class="row">
+          <button id="render" disabled>Render video</button>
+          <button id="convert" class="ghost" disabled>Convert for Desmos</button>
+          <button id="cancel" class="ghost" hidden>Cancel</button>
+        </div>
+
+        <details>
+          <summary>Desmos export settings</summary>
+          <div class="grid">
+            <label>Frames <input id="frames" type="number" value="40" min="1" max="400" /></label>
+            <label>FPS <input id="fps" type="number" value="8" min="1" max="30" /></label>
+            <label>Width px <input id="width" type="number" value="200" min="48" max="640" /></label>
+            <label>Clip budget <input id="budget" type="number" value="9000" min="400" max="9800" step="100" /></label>
+            <label>Clip contours <input id="slots" type="number" value="48" min="4" max="128" step="4" /></label>
+          </div>
+        </details>
+
+        <div id="progress" class="progress" hidden>
+          <div class="bar"><div id="barFill"></div></div>
+          <span id="progressText"></span>
+        </div>
+        <p id="notice" class="notice" hidden></p>
+      </section>
+
+      <section id="result" class="card" hidden>
+        <h2>Rendered video</h2>
+        <video id="video" controls playsinline></video>
+        <div class="row">
+          <a id="download" class="button" download>Download</a>
+          <span id="stats" class="metrics"></span>
+        </div>
+      </section>
+
+      <section id="preview" class="card" hidden>
+        <div class="row">
+          <button id="play" class="ghost">Play</button>
+          <input id="scrub" type="range" min="0" max="0" value="0" />
+          <span id="frameLabel" class="metrics"></span>
+        </div>
+        <canvas id="canvas"></canvas>
+        <div class="row">
+          <h2>Export</h2>
+          <select id="exportMode">
+            <option value="frame">Current frame (exact)</option>
+            <option value="clip">Whole clip (compact)</option>
+          </select>
+          <button id="copy" class="ghost">Copy</button>
+        </div>
+        <textarea id="latex" readonly spellcheck="false"></textarea>
+        <p id="exportNote" class="metrics"></p>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
