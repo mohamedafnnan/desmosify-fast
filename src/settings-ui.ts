@@ -21,7 +21,7 @@ const DESMOS_PRESET_TEXT: Record<DesmosPreset, string> = {
   pixels: 'Up to 40 pictures, 320 pixels wide, with a larger point limit. The copied formula will be bigger.',
   detail: 'Up to 24 pictures (about 3 seconds at 8 FPS). A shorter clip gives each picture more room for points and shapes.',
   long: 'Up to 80 pictures (about 10 seconds at 8 FPS). The same point limit is spread across more pictures, so each may show fewer details.',
-  full: 'Uses the maximum settings: up to 400 pictures (about 13 seconds at 30 FPS), 640 pixels wide, and the highest point and outline limits. This can make a very large formula that runs slowly in Desmos.',
+  full: 'Uses 8 pictures each second for up to 90 seconds (720 pictures), at 640 pixels wide with the highest point and outline limits. The full clip takes longer, and its detail is shared across many pictures.',
   custom: 'Your own Desmos settings. Change the numbers in More Desmos settings to fine-tune them.',
 };
 const VIDEO_VALUES: Record<Exclude<VideoPreset, 'custom'>, { size: string; detail: string; cutoff: string; target?: number }> = {
@@ -37,7 +37,7 @@ const DESMOS_VALUES: Record<Exclude<DesmosPreset, 'custom'>, { frames: string; f
   pixels: { frames: '40', fps: '8', width: '320', budget: '9800', slots: '64' },
   detail: { frames: '24', fps: '8', width: '280', budget: '9800', slots: '96' },
   long: { frames: '80', fps: '8', width: '200', budget: '9800', slots: '48' },
-  full: { frames: '400', fps: '30', width: '640', budget: '9800', slots: '128' },
+  full: { frames: '720', fps: '8', width: '640', budget: '9800', slots: '128' },
 };
 
 function element<T extends HTMLElement>(id: string): T {
