@@ -5,6 +5,7 @@
 - [x] Add video-quality presets for original size, up to 720p, extra line detail, high quality, and quick/small output.
 - [x] Add Desmos-export presets for medium, smaller formula, wider drawing, more detail per picture, and longer clips.
 - [x] Add the Ultra / Maximum Desmos preset using every source frame at native FPS and native pixel width, with no preset frame cap; migrate older saved Full clip selections.
+- [x] Add on-page step-by-step instructions for copying the whole-clip formulas into Desmos and playing them with the f slider.
 - [x] Use the selected video’s native pixel width for full-source exports instead of the normal 640-pixel preset ceiling.
 - [x] Split long Desmos exports into 40-frame sections with bounded lists, preserving about 245 points per picture at maximum budget and one shared slider for the full animation.
 - [x] Keep all individual controls available; manual edits switch the matching selector to “My own settings.”
