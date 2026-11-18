@@ -22,7 +22,7 @@ const DESMOS_PRESET_TEXT: Record<DesmosPreset, string> = {
   pixels: 'Up to 40 pictures, 320 pixels wide, with a larger point limit. The copied formula will be bigger.',
   detail: 'Up to 24 pictures (about 3 seconds at 8 FPS). A shorter clip gives each picture more room for points and shapes.',
   long: 'Up to 80 pictures (about 10 seconds at 8 FPS). The same point limit is spread across more pictures, so each may show fewer details.',
-  full: 'Uses every frame from your video at its original frame rate. Long clips create a very large formula and may take a long time to make or use in Desmos.',
+  full: 'Uses every frame at its original frame rate and traces at the video’s full width. Long, wide clips can take a long time, and Desmos may run slowly.',
   custom: 'Your own Desmos settings. Change the numbers in More Desmos settings to fine-tune them.',
 };
 const VIDEO_VALUES: Record<Exclude<VideoPreset, 'custom'>, { size: string; detail: string; cutoff: string; target?: number }> = {
@@ -113,9 +113,9 @@ export function initializeSettingsUI() {
   };
   const showDesmosHelp = () => {
     desmosHelp.textContent = desmosPreset.value === 'full' && !sourceInfo
-      ? 'Choose a video to use every source frame. Long clips create a very large formula and may take a long time to make or use in Desmos.'
+      ? 'Choose a video to use every source frame and its full pixel width. Long, wide clips can take a long time, and Desmos may run slowly.'
       : desmosPreset.value === 'full' && sourceInfo
-        ? `Uses all ${Math.round(sourceInfo.frameCount)} source frames at ${sourceInfo.fps.toFixed(2)} FPS. This may create a very large formula and take a long time to make or use in Desmos.`
+        ? `Uses all ${Math.round(sourceInfo.frameCount)} source frames at ${sourceInfo.fps.toFixed(2)} FPS and the full ${sourceInfo.width}-pixel video width. Long, wide clips can take a long time, and Desmos may run slowly.`
         : DESMOS_PRESET_TEXT[desmosPreset.value as DesmosPreset];
   };
 
@@ -156,6 +156,10 @@ export function initializeSettingsUI() {
       input('frames').value = String(Math.max(1, Math.round(sourceInfo.frameCount)));
       input('fps').value = String(sourceInfo.fps);
       (input('frames') as HTMLInputElement).max = String(Math.max(1, Math.round(sourceInfo.frameCount)));
+      input('width').value = String(sourceInfo.width);
+      (input('width') as HTMLInputElement).max = String(sourceInfo.width);
+    } else if (preset !== 'full') {
+      (input('width') as HTMLInputElement).max = '640';
     }
     showDesmosHelp();
   };
