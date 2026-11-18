@@ -24,6 +24,7 @@ export async function probe(file: File): Promise<SourceInfo> {
       duration,
       frameCount: Math.max(1, stats.packetCount),
       hasAudio: audio !== null,
+      audioCodec: audio ? (audio.codec ?? 'unknown') : null,
       firstTimestamp: first,
     };
   } finally {

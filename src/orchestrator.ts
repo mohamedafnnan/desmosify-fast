@@ -22,6 +22,7 @@ export type RunStats = {
   traceMs: number;
   encodeMs: number;
   codec: string;
+  audio: 'copied' | 're-encoded' | 'none';
 };
 
 type Common = {
@@ -180,6 +181,7 @@ export async function collectFrames(job: CollectJob): Promise<{ frames: Float32A
         traceMs: stats.traceMs,
         encodeMs: 0,
         codec: '',
+        audio: 'none',
       },
     };
   } finally {
@@ -193,12 +195,12 @@ export async function renderVideo(job: RenderJob): Promise<{ blob: Blob; stats: 
   const encoder = new Worker(new URL('./encode.worker.ts', import.meta.url), { type: 'module' });
   const engine = startEngine(job, true, true);
 
-  const result = new Promise<{ blob: Blob; codec: string; ms: number }>((resolve, reject) => {
+  const result = new Promise<{ blob: Blob; codec: string; ms: number; audio: RunStats['audio'] }>((resolve, reject) => {
     encoder.onmessage = (event: MessageEvent<EncodeOut>) => {
       const m = event.data;
       if (m.type === 'encoded') engine.setEncoded(m.upTo);
       else if (m.type === 'notice') job.onNotice?.(m.message);
-      else if (m.type === 'done') resolve({ blob: m.blob, codec: m.codec, ms: m.ms });
+      else if (m.type === 'done') resolve({ blob: m.blob, codec: m.codec, ms: m.ms, audio: m.audio });
       else reject(new Error(m.message));
     };
     encoder.onerror = (event) => reject(new Error(event.message || 'The encoder crashed.'));
@@ -239,6 +241,7 @@ export async function renderVideo(job: RenderJob): Promise<{ blob: Blob; stats: 
         traceMs: s.traceMs,
         encodeMs: done.ms,
         codec: done.codec,
+        audio: done.audio,
       },
     };
   } finally {

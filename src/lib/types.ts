@@ -63,7 +63,7 @@ export type EncodeIn = EncodeInit | { type: 'abort' };
 
 export type EncodeOut =
   | { type: 'encoded'; upTo: number }
-  | { type: 'done'; blob: Blob; codec: string; ms: number }
+  | { type: 'done'; blob: Blob; codec: string; ms: number; audio: 'copied' | 're-encoded' | 'none' }
   | { type: 'notice'; message: string }
   | { type: 'error'; message: string };
 
@@ -74,6 +74,7 @@ export type SourceInfo = {
   duration: number;
   frameCount: number;
   hasAudio: boolean;
+  audioCodec: string | null;
   firstTimestamp: number;
 };
 

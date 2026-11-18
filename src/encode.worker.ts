@@ -32,7 +32,7 @@ const port = self as unknown as {
   onmessage: ((event: MessageEvent<EncodeIn>) => void) | null;
 };
 
-type AudioJob = { source: AudioSampleSource | EncodedAudioPacketSource; run: () => Promise<void> };
+type AudioJob = { source: AudioSampleSource | EncodedAudioPacketSource; run: () => Promise<void>; mode: 'copied' | 're-encoded' };
 
 /** Copy the source audio untouched when the output container accepts its codec; otherwise transcode. */
 async function openAudio(file: File, format: OutputFormat): Promise<AudioJob | null> {
@@ -47,6 +47,7 @@ async function openAudio(file: File, format: OutputFormat): Promise<AudioJob | n
     if (decoderConfig) {
       const source = new EncodedAudioPacketSource(codec);
       return {
+        mode: 'copied',
         source,
         run: async () => {
           let first = true;
@@ -77,6 +78,7 @@ async function openAudio(file: File, format: OutputFormat): Promise<AudioJob | n
     transform: numberOfChannels < sourceChannels ? { numberOfChannels } : undefined,
   });
   return {
+    mode: 're-encoded',
     source,
     run: async () => {
       for await (const sample of new AudioSampleSink(track).samples()) {
@@ -140,7 +142,7 @@ async function encode(init: EncodeInit): Promise<void> {
     if (audioTask) await audioTask;
     await output.finalize();
     const mime = await output.getMimeType();
-    port.postMessage({ type: 'done', blob: new Blob([target.buffer!], { type: mime }), codec, ms: performance.now() - started });
+    port.postMessage({ type: 'done', blob: new Blob([target.buffer!], { type: mime }), codec, ms: performance.now() - started, audio: audio ? audio.mode : 'none' });
   };
 
   const encodeFrame = async (index: number, pts: Float32Array | null) => {

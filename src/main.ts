@@ -63,10 +63,10 @@ function onProgress(p: Progress, label: string) {
   progressText.textContent = `${label} ${p.traced}/${p.total} frames · ${fps.toFixed(1)} fps · ${reuse}% reused · ~${fmtMs(eta)} left`;
 }
 
-function statsLine(s: RunStats, total: number) {
+function statsLine(s: RunStats, total: number, gridOn: boolean, wantedAudio: boolean) {
   const per = (ms: number) => (s.frames > 0 ? (ms / s.frames).toFixed(1) : '0');
   const fps = s.elapsedMs > 0 ? ((total / s.elapsedMs) * 1000).toFixed(1) : '–';
-  return `${total} frames in ${(s.elapsedMs / 1000).toFixed(1)}s (${fps} fps) · ${s.threads} threads · ${Math.round((s.reused / Math.max(1, s.frames)) * 100)}% frames reused · per frame: decode ${per(s.decodeMs)} ms, read ${per(s.readMs)} ms, trace ${per(s.traceMs)} ms · ${s.codec}`;
+  return `${total} frames in ${(s.elapsedMs / 1000).toFixed(1)}s (${fps} fps) · ${s.threads} threads · ${Math.round((s.reused / Math.max(1, s.frames)) * 100)}% frames reused · per frame: decode ${per(s.decodeMs)} ms, read ${per(s.readMs)} ms, trace ${per(s.traceMs)} ms · ${s.codec} · grid ${gridOn ? 'on' : 'off'} · audio ${wantedAudio ? s.audio : 'not requested'}`;
 }
 
 async function accept(f: File | undefined) {
@@ -85,7 +85,9 @@ async function accept(f: File | undefined) {
       new Option(`Source (${info.height}p)`, 'source'),
       ...[1080, 720, 480, 360].filter((h) => h < info!.height).map((h) => new Option(`${h}p`, String(h))),
     );
+    $('fileInfo').textContent += info.hasAudio ? ` · audio: ${info.audioCodec}` : ' · no audio track found';
     $<HTMLInputElement>('audio').disabled = !info.hasAudio;
+    $<HTMLInputElement>('audio').title = info.hasAudio ? 'Copy the source audio into the video' : 'No audio track was found in this file';
     if (!info.hasAudio) $<HTMLInputElement>('audio').checked = false;
     busy(false);
   } catch (error) {
@@ -139,6 +141,8 @@ async function runRender() {
   const total = totalFrames(info, fps);
 
   const controller = (abort = new AbortController());
+  lastGrid = checked('grid');
+  lastAudio = checked('audio');
   showNotice('');
   $<HTMLElement>('result').hidden = true;
   progressBox.hidden = false;
@@ -169,6 +173,9 @@ async function runRender() {
   }
 }
 
+let lastGrid = true;
+let lastAudio = false;
+
 function showResult(blob: Blob, stats: RunStats, total: number) {
   if (videoUrl) URL.revokeObjectURL(videoUrl);
   videoUrl = URL.createObjectURL(blob);
@@ -178,7 +185,7 @@ function showResult(blob: Blob, stats: RunStats, total: number) {
   const a = $<HTMLAnchorElement>('download');
   a.href = videoUrl;
   a.download = `${base} (desmos).${ext}`;
-  $('stats').textContent = statsLine(stats, total);
+  $('stats').textContent = statsLine(stats, total, lastGrid, lastAudio);
   $<HTMLElement>('result').hidden = false;
   (window as unknown as { __lastRender?: unknown }).__lastRender = { bytes: blob.size, type: blob.type, stats, total };
 }
