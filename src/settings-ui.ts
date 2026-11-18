@@ -2,7 +2,7 @@ type SettingValue = string | boolean;
 type SettingsSnapshot = Record<string, SettingValue>;
 
 type VideoPreset = 'source' | '720' | 'detail' | 'quality' | '360' | 'custom';
-type DesmosPreset = 'medium' | 'small' | 'pixels' | 'detail' | 'long' | 'custom';
+type DesmosPreset = 'medium' | 'small' | 'pixels' | 'detail' | 'long' | 'full' | 'custom';
 
 const STORAGE_KEY = 'desmosify-fast.settings.v1';
 const IDS = ['size', 'detail', 'lineWidth', 'threads', 'cutoff', 'smooth', 'grid', 'dedup', 'vfr', 'audio', 'frames', 'fps', 'width', 'budget', 'slots', 'videoPreset', 'desmosPreset'] as const;
@@ -21,6 +21,7 @@ const DESMOS_PRESET_TEXT: Record<DesmosPreset, string> = {
   pixels: 'Up to 40 pictures, 320 pixels wide, with a larger point limit. The copied formula will be bigger.',
   detail: 'Up to 24 pictures (about 3 seconds at 8 FPS). A shorter clip gives each picture more room for points and shapes.',
   long: 'Up to 80 pictures (about 10 seconds at 8 FPS). The same point limit is spread across more pictures, so each may show fewer details.',
+  full: 'Uses the maximum settings: up to 400 pictures (about 13 seconds at 30 FPS), 640 pixels wide, and the highest point and outline limits. This can make a very large formula that runs slowly in Desmos.',
   custom: 'Your own Desmos settings. Change the numbers in More Desmos settings to fine-tune them.',
 };
 const VIDEO_VALUES: Record<Exclude<VideoPreset, 'custom'>, { size: string; detail: string; cutoff: string; target?: number }> = {
@@ -36,6 +37,7 @@ const DESMOS_VALUES: Record<Exclude<DesmosPreset, 'custom'>, { frames: string; f
   pixels: { frames: '40', fps: '8', width: '320', budget: '9800', slots: '64' },
   detail: { frames: '24', fps: '8', width: '280', budget: '9800', slots: '96' },
   long: { frames: '80', fps: '8', width: '200', budget: '9800', slots: '48' },
+  full: { frames: '400', fps: '30', width: '640', budget: '9800', slots: '128' },
 };
 
 function element<T extends HTMLElement>(id: string): T {
@@ -177,7 +179,7 @@ export function initializeSettingsUI() {
     videoPreset.value = String(values.videoPreset ?? 'custom');
     desmosPreset.value = String(values.desmosPreset ?? 'custom');
     if (!['source', '720', 'detail', 'quality', '360', 'custom'].includes(videoPreset.value)) videoPreset.value = 'custom';
-    if (!['medium', 'small', 'pixels', 'detail', 'long', 'custom'].includes(desmosPreset.value)) desmosPreset.value = 'custom';
+    if (!['medium', 'small', 'pixels', 'detail', 'long', 'full', 'custom'].includes(desmosPreset.value)) desmosPreset.value = 'custom';
     for (const id of RANGE_IDS) updateReadout(id);
     showVideoHelp();
     showDesmosHelp();

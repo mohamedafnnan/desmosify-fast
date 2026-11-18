@@ -4,6 +4,7 @@
 
 - [x] Add video-quality presets for original size, up to 720p, extra line detail, high quality, and quick/small output.
 - [x] Add Desmos-export presets for medium, smaller formula, wider drawing, more detail per picture, and longer clips.
+- [x] Add a maximum-settings Desmos preset: up to 400 pictures, 30 FPS, 640 pixels wide, and maximum point and outline limits, with the size and speed tradeoff explained.
 - [x] Keep all individual controls available; manual edits switch the matching selector to “My own settings.”
 - [x] Save preset choices with existing browser-only settings; preserve older saved values as custom; include preset/value state in reset and undo.
 - [x] Apply video-size presets using the selected source height and update range readouts.
