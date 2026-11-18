@@ -22,8 +22,12 @@ export class FrameProcessor {
     return this.tracer.trace(this.det, opts);
   }
 
-  processGray(gray: Uint8Array, opts: ProcessOptions): Float32Array {
-    this.det.gray.set(gray);
+  /** Luma buffer (w*h) the detector reads; fill it, then call processLuma(). */
+  get luma(): Uint8Array {
+    return this.det.gray;
+  }
+
+  processLuma(opts: ProcessOptions): Float32Array {
     this.det.detectGray(opts);
     return this.tracer.trace(this.det, opts);
   }

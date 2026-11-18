@@ -1,5 +1,8 @@
-import { BlobSource, CanvasSink, Input, MATROSKA, MP4, QTFF, WEBM } from 'mediabunny';
+import { BlobSource, Input, MATROSKA, MP4, QTFF, VideoSampleSink, WEBM } from 'mediabunny';
+import type { VideoSample } from 'mediabunny';
 import { FrameProcessor, lumaDiff } from './lib/frame.ts';
+import { resampleLuma, thumbnail } from './lib/luma.ts';
+import type { LumaSource, Packing, Rotation } from './lib/luma.ts';
 import { errorText } from './lib/types.ts';
 import type { FrameMessage, PipelineIn, PipelineJob, PipelineOut } from './lib/types.ts';
 
@@ -37,6 +40,38 @@ function processorFor(w: number, h: number): FrameProcessor {
   return processor.fp;
 }
 
+const YUV = new Set(['I420', 'I420A', 'I422', 'I422A', 'I444', 'I444A', 'NV12']);
+let scratch = new Uint8Array(1 << 20);
+
+/** Read the decoder's own pixels (no canvas) and resample luma into `dst` at trace size. */
+async function lumaOf(sample: VideoSample, w: number, h: number, dst: Uint8Array): Promise<void> {
+  let format: { format?: string } | undefined;
+  let packing: Packing;
+  const fmt = sample.format as string | null;
+  if (fmt && YUV.has(fmt)) packing = 'luma';
+  else if (fmt === 'RGBA' || fmt === 'RGBX') packing = 'rgba';
+  else if (fmt === 'BGRA' || fmt === 'BGRX') packing = 'bgra';
+  else {
+    packing = 'rgba'; // 10-bit or unknown layouts: let the browser convert
+    format = { format: 'RGBA' };
+  }
+  const options = format as VideoFrameCopyToOptions | undefined;
+  const size = sample.allocationSize(options);
+  if (scratch.length < size) scratch = new Uint8Array(Math.max(size, scratch.length * 2));
+  const layout = await sample.copyTo(scratch, options);
+  const source: LumaSource = {
+    data: scratch,
+    offset: layout[0].offset,
+    stride: layout[0].stride,
+    packing,
+    width: sample.visibleRect.width,
+    height: sample.visibleRect.height,
+    rotation: sample.rotation as Rotation,
+    flip: sample.flip,
+  };
+  resampleLuma(source, w, h, dst);
+}
+
 async function run(job: PipelineJob): Promise<void> {
   const { params, runId } = job;
   if (!connection || connection.runId !== runId) throw new Error('Pipeline worker has no output port.');
@@ -44,13 +79,10 @@ async function run(job: PipelineJob): Promise<void> {
   const { track, t0 } = await open(job);
   const { traceW: w, traceH: h } = params;
   const fp = processorFor(w, h);
-  const sink = new CanvasSink(track, { width: w, height: h, fit: 'fill', poolSize: 2 });
+  const sink = new VideoSampleSink(track);
 
   const thumbH = Math.max(8, Math.round((THUMB_W * h) / w));
-  const thumb = new OffscreenCanvas(THUMB_W, thumbH);
-  const thumbCtx = thumb.getContext('2d', { willReadFrequently: true })!;
-  thumbCtx.imageSmoothingQuality = 'medium';
-  const thumbLuma = new Uint8Array(THUMB_W * thumbH);
+  const thumb = new Uint8Array(THUMB_W * thumbH);
   let reference: Uint8Array | null = null;
 
   const times: number[] = [];
@@ -65,48 +97,47 @@ async function run(job: PipelineJob): Promise<void> {
     out.postMessage(message, pts ? [pts.buffer] : []);
   };
 
-  const iterator = sink.canvasesAtTimestamps(times);
+  const iterator = sink.samplesAtTimestamps(times);
   let index = job.start;
   try {
     for (;;) {
       const t1 = performance.now();
-      const { value, done } = await iterator.next();
+      const { value: sample, done } = await iterator.next();
       stats.decodeMs += performance.now() - t1;
       if (done) break;
-      if (cancelled === runId) return;
+      if (cancelled === runId) {
+        sample?.close();
+        return;
+      }
 
-      if (!value) {
+      if (!sample) {
         send(index, null);
         stats.reused++;
       } else {
-        const { canvas } = value;
         let repeat = false;
+        try {
+          const t2 = performance.now();
+          await lumaOf(sample, w, h, fp.luma);
+          stats.readMs += performance.now() - t2;
+        } finally {
+          sample.close();
+        }
 
         if (params.dedup) {
-          const t2 = performance.now();
-          thumbCtx.drawImage(canvas as OffscreenCanvas, 0, 0, THUMB_W, thumbH);
-          const px = thumbCtx.getImageData(0, 0, THUMB_W, thumbH).data;
-          for (let i = 0, p = 0; i < thumbLuma.length; i++, p += 4) {
-            thumbLuma[i] = (px[p] * 77 + px[p + 1] * 150 + px[p + 2] * 29) >> 8;
-          }
-          stats.readMs += performance.now() - t2;
+          thumbnail(fp.luma, w, h, THUMB_W, thumbH, thumb);
           if (reference) {
-            const d = lumaDiff(reference, thumbLuma);
+            const d = lumaDiff(reference, thumb);
             repeat = d.mean < params.dedupMean && d.max < 40;
           }
-          if (!repeat) reference = thumbLuma.slice();
+          if (!repeat) reference = thumb.slice();
         }
 
         if (repeat) {
           send(index, null);
           stats.reused++;
         } else {
-          const t3 = performance.now();
-          const ctx = (canvas as OffscreenCanvas).getContext('2d') as OffscreenCanvasRenderingContext2D;
-          const image = ctx.getImageData(0, 0, w, h);
           const t4 = performance.now();
-          const pts = fp.process(image.data, params);
-          stats.readMs += t4 - t3;
+          const pts = fp.processLuma(params);
           stats.traceMs += performance.now() - t4;
           send(index, pts);
         }
