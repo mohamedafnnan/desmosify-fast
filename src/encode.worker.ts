@@ -1,6 +1,8 @@
 import {
   AudioSampleSink,
   AudioSampleSource,
+  EncodedAudioPacketSource,
+  EncodedPacketSink,
   BlobSource,
   BufferTarget,
   CanvasSource,
@@ -16,7 +18,7 @@ import {
   WEBM,
   WebMOutputFormat,
 } from 'mediabunny';
-import type { InputAudioTrack, OutputFormat } from 'mediabunny';
+import type { OutputFormat } from 'mediabunny';
 import { FrameRenderer } from './lib/draw.ts';
 import { errorText } from './lib/types.ts';
 import type { EncodeIn, EncodeInit, EncodeOut, FrameMessage } from './lib/types.ts';
@@ -30,40 +32,63 @@ const port = self as unknown as {
   onmessage: ((event: MessageEvent<EncodeIn>) => void) | null;
 };
 
-type AudioJob = { track: InputAudioTrack; source: AudioSampleSource };
+type AudioJob = { source: AudioSampleSource | EncodedAudioPacketSource; run: () => Promise<void> };
 
+/** Copy the source audio untouched when the output container accepts its codec; otherwise transcode. */
 async function openAudio(file: File, format: OutputFormat): Promise<AudioJob | null> {
   const input = new Input({ source: new BlobSource(file), formats: FORMATS });
   const track = await input.getPrimaryAudioTrack().catch(() => null);
   if (!track) return null;
-  if (!(await track.canDecode())) throw new Error('This browser cannot decode the audio track.');
+  const supported = new Set(format.getSupportedAudioCodecs());
+
+  const codec = track.codec;
+  if (codec && supported.has(codec)) {
+    const decoderConfig = await track.getDecoderConfig();
+    if (decoderConfig) {
+      const source = new EncodedAudioPacketSource(codec);
+      return {
+        source,
+        run: async () => {
+          let first = true;
+          for await (const packet of new EncodedPacketSink(track).packets()) {
+            await source.add(packet, first ? { decoderConfig } : undefined);
+            first = false;
+          }
+          source.close();
+        },
+      };
+    }
+  }
+
+  if (!(await track.canDecode())) {
+    throw new Error(`this browser cannot decode the source audio (${codec ?? 'unknown codec'})`);
+  }
   const sourceChannels = await track.getNumberOfChannels();
   const numberOfChannels = Math.min(sourceChannels, 2);
   const sampleRate = await track.getSampleRate();
-  const supported = new Set(format.getSupportedAudioCodecs());
-  const codec = await getFirstEncodableAudioCodec(
+  const target = await getFirstEncodableAudioCodec(
     AUDIO_CODECS.filter((c) => supported.has(c)),
     { numberOfChannels, sampleRate, quality: QUALITY_HIGH },
   );
-  if (!codec) throw new Error('This browser cannot encode the audio track.');
+  if (!target) throw new Error(`this browser cannot encode audio for a ${format.fileExtension} file`);
   const source = new AudioSampleSource({
-    codec,
+    codec: target,
     quality: QUALITY_HIGH,
     transform: numberOfChannels < sourceChannels ? { numberOfChannels } : undefined,
   });
-  return { track, source };
-}
-
-async function pumpAudio(job: AudioJob): Promise<void> {
-  const sink = new AudioSampleSink(job.track);
-  for await (const sample of sink.samples()) {
-    try {
-      await job.source.add(sample);
-    } finally {
-      sample.close();
-    }
-  }
-  job.source.close();
+  return {
+    source,
+    run: async () => {
+      for await (const sample of new AudioSampleSink(track).samples()) {
+        try {
+          await source.add(sample);
+        } finally {
+          sample.close();
+        }
+      }
+      source.close();
+    },
+  };
 }
 
 let aborted = false;
@@ -82,9 +107,9 @@ async function encode(init: EncodeInit): Promise<void> {
   if (init.audio) {
     try {
       audio = await openAudio(init.audio, format);
-      if (!audio) port.postMessage({ type: 'notice', message: 'This source has no audio track; rendering video only.' });
+      if (!audio) port.postMessage({ type: 'notice', message: 'This source has no audio track, so the video has no sound.' });
     } catch (error) {
-      port.postMessage({ type: 'notice', message: `Audio skipped: ${errorText(error)}` });
+      port.postMessage({ type: 'notice', message: `Audio was not kept: ${errorText(error)}.` });
     }
   }
   if (audio) output.addAudioTrack(audio.source);
@@ -104,7 +129,7 @@ async function encode(init: EncodeInit): Promise<void> {
   const dt = 1 / fps;
 
   await output.start();
-  const audioTask = audio ? pumpAudio(audio) : null;
+  const audioTask = audio ? audio.run() : null;
   void audioTask?.catch(() => undefined);
 
   const finish = async () => {
