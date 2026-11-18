@@ -43,6 +43,10 @@
 
           <section class="card step-card" aria-labelledby="look-heading">
             <div class="section-heading"><span class="step-number">2</span><div><p class="section-kicker">MAKE IT YOURS</p><h2 id="look-heading">Choose the look</h2><p class="section-help">The blue sliders change the drawing. Your starting choices are ready to go.</p></div></div>
+            <div class="preset-block video-preset-block">
+              <label class="setting" for="videoPreset"><span class="setting-title">Video quality preset</span><select id="videoPreset" aria-describedby="videoPresetHelp" disabled><option value="source">More pixels — keep original size</option><option value="720">Medium — up to 720p</option><option value="detail">More detail — find smaller lines</option><option value="quality">High quality — full size + detail</option><option value="360">Quick &amp; small — up to 360p</option><option value="custom">My own settings</option></select></label>
+              <p id="videoPresetHelp" class="help" role="status" aria-live="polite">Choose a video first to use a video quality preset.</p>
+            </div>
             <div class="setting-grid">
               <label class="setting"><span class="setting-title">Video size</span><select id="size" aria-describedby="size-help"><option value="source">Keep the video size</option></select><span id="size-help" class="help">The finished video’s height. Bigger can look sharper, but takes longer to make.</span></label>
               <label class="setting"><span class="setting-title">Find tiny lines</span><span class="range-line"><input id="detail" type="range" value="1" min="0.25" max="2" step="0.25" aria-describedby="detail-help" /><output id="detailValue" class="range-value" for="detail">1×</output></span><span id="detail-help" class="help">Move right to look for smaller shapes. This can take longer.</span></label>
@@ -78,6 +82,10 @@
               <article class="output-choice"><div class="choice-symbol" aria-hidden="true">▶</div><div class="choice-copy"><h3>A line-art video</h3><p>Watch it here, then download it to your device.</p></div><button id="render" class="button-primary" type="button" disabled>Make a video</button></article>
               <article class="output-choice output-choice-desmos">
                 <div class="choice-symbol desmos-symbol" aria-hidden="true">ƒ</div><div class="choice-copy"><h3>A Desmos drawing</h3><p>Make formulas you can copy and paste into Desmos.</p></div><button id="convert" class="button-secondary" type="button" disabled>Make Desmos formulas</button>
+                <div class="preset-block desmos-preset-block">
+                  <label class="setting" for="desmosPreset"><span class="setting-title">Desmos export preset</span><select id="desmosPreset" aria-describedby="desmosPresetHelp"><option value="medium">Medium — good for most clips</option><option value="small">Small formula — up to 2.5 seconds</option><option value="pixels">More pixels — wider drawing</option><option value="detail">More detail per picture — shorter clip</option><option value="long">Longer clip — up to 10 seconds</option><option value="custom">My own settings</option></select></label>
+                  <p id="desmosPresetHelp" class="help" role="status" aria-live="polite">Up to 40 pictures (about 5 seconds at 8 FPS), 200 pixels wide. A good balance of clip length and detail.</p>
+                </div>
                 <details class="export-settings"><summary><span>More Desmos settings</span><span class="summary-note">Optional</span></summary><p class="help">These only change your Desmos drawing. The starting choices are ready to try.</p>
                   <div class="setting-grid export-grid">
                     <label class="setting"><span class="setting-title">Pictures in the moving drawing</span><input id="frames" type="number" value="40" min="1" max="400" /><span class="help">The most pictures to use. More can look smoother, but makes a bigger formula.</span></label>

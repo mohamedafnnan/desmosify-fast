@@ -75,6 +75,10 @@ h2 { margin: 0; color: var(--ink); font-size: 23px; line-height: 1.18; letter-sp
 .drop small { color: var(--muted); font-size: 13px; }
 .file-info { max-width: 100%; overflow-wrap: anywhere; }
 .setting-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
+.preset-block { display: grid; gap: 7px; padding: 14px; border: 1px solid #cfdbf1; border-radius: 13px; background: #f6f8ff; }
+.preset-block > .help { margin: 0; }
+.video-preset-block { margin-bottom: 15px; }
+.desmos-preset-block { grid-column: 1 / -1; width: 100%; border-color: #f0d8d4; background: #fff9f7; }
 .setting { display: grid; align-content: start; gap: 7px; min-width: 0; color: var(--ink); font-size: 14px; font-weight: 700; }
 .setting-title { color: var(--ink); font-weight: 850; }
 input[type='number'], select, textarea { width: 100%; min-height: 44px; padding: 9px 12px; color: var(--ink); background: #fbfcff; border: 1px solid #c8d3e6; border-radius: 11px; }
@@ -119,6 +123,7 @@ button:active, .button-primary:active, .button-secondary:active { transform: tra
 button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
 .button-link { width: fit-content; }
 .export-settings { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid #f0dfdc; }
+.export-settings { width: 100%; }
 .export-settings > .help { margin: 8px 0 12px; }
 .export-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .progress { display: grid; gap: 9px; margin-top: 17px; padding: 14px; border: 1px solid #cedaf0; border-radius: 13px; background: var(--blue-soft); }

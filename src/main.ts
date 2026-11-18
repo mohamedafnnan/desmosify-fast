@@ -22,6 +22,7 @@ const progressBox = $<HTMLDivElement>('progress');
 const barFill = $<HTMLDivElement>('barFill');
 const progressText = $<HTMLSpanElement>('progressText');
 const sizeSelect = $<HTMLSelectElement>('size');
+const videoPresetSelect = $<HTMLSelectElement>('videoPreset');
 const audioInput = $<HTMLInputElement>('audio');
 const audioHelp = $<HTMLElement>('audioHelp');
 const audioOption = document.querySelector<HTMLElement>('.audio-option')!;
@@ -96,6 +97,7 @@ async function accept(f: File | undefined) {
   fileInput.value = '';
   file = f;
   info = null;
+  videoPresetSelect.disabled = true;
   $('fileName').textContent = f.name;
   $('fileInfo').textContent = 'Reading…';
   audioInput.disabled = true;
@@ -110,7 +112,8 @@ async function accept(f: File | undefined) {
       new Option(`Source (${info.height}p)`, 'source'),
       ...[1080, 720, 480, 360].filter((h) => h < info!.height).map((h) => new Option(`${h}p`, String(h))),
     );
-    settingsUi.syncSizePreference();
+    videoPresetSelect.disabled = false;
+    settingsUi.syncForSource(info.height);
     audioInput.disabled = !info.hasAudio;
     audioInput.title = info.hasAudio ? 'Keep the sound from your original video' : 'This video does not have a sound track';
     audioOption.classList.toggle('is-unavailable', !info.hasAudio);
@@ -119,6 +122,7 @@ async function accept(f: File | undefined) {
     busy(false);
   } catch (error) {
     file = null;
+    videoPresetSelect.disabled = true;
     $('fileName').textContent = 'No usable video yet';
     $('fileInfo').textContent = '';
     console.warn('Could not open this video:', error);
