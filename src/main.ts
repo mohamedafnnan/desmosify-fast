@@ -225,11 +225,18 @@ function openPreview() {
   const ph = even((pw * clip.traceH) / clip.traceW);
   canvas.width = pw;
   canvas.height = ph;
-  previewRenderer = new FrameRenderer(pw, ph, clip.traceW, clip.traceH, { grid: true, color: DEFAULT_COLOR, lineWidth: 2 });
+  previewRenderer = new FrameRenderer(pw, ph, clip.traceW, clip.traceH, { grid: checked('grid'), color: DEFAULT_COLOR, lineWidth: 2 });
   const scrub = $<HTMLInputElement>('scrub');
   scrub.max = String(clip.frames.length - 1);
   frameIndex = 0;
   $<HTMLElement>('preview').hidden = false;
+  paint();
+}
+
+function openPreviewKeepFrame() {
+  const keep = frameIndex;
+  openPreview();
+  frameIndex = Math.min(keep, (clip?.frames.length ?? 1) - 1);
   paint();
 }
 
@@ -290,6 +297,9 @@ $<HTMLInputElement>('scrub').addEventListener('input', () => {
   paint();
 });
 $('exportMode').addEventListener('change', refreshExport);
+$<HTMLInputElement>('grid').addEventListener('change', () => {
+  if (clip) openPreviewKeepFrame();
+});
 $('copy').addEventListener('click', async () => {
   const text = $<HTMLTextAreaElement>('latex').value;
   try {
