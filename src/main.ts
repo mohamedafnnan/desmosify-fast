@@ -314,3 +314,5 @@ $('copy').addEventListener('click', async () => {
 
 renderBtn.addEventListener('click', () => void runRender());
 convertBtn.addEventListener('click', () => void runConvert());
+
+$('build').textContent = `Build ${__BUILD__}`;
