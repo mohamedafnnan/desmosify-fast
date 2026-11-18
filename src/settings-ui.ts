@@ -1,5 +1,6 @@
 type SettingValue = string | boolean;
 type SettingsSnapshot = Record<string, SettingValue>;
+import type { SourceInfo } from './lib/types.ts';
 
 type VideoPreset = 'source' | '720' | 'detail' | 'quality' | '360' | 'custom';
 type DesmosPreset = 'medium' | 'small' | 'pixels' | 'detail' | 'long' | 'full' | 'custom';
@@ -21,7 +22,7 @@ const DESMOS_PRESET_TEXT: Record<DesmosPreset, string> = {
   pixels: 'Up to 40 pictures, 320 pixels wide, with a larger point limit. The copied formula will be bigger.',
   detail: 'Up to 24 pictures (about 3 seconds at 8 FPS). A shorter clip gives each picture more room for points and shapes.',
   long: 'Up to 80 pictures (about 10 seconds at 8 FPS). The same point limit is spread across more pictures, so each may show fewer details.',
-  full: 'Uses 8 pictures each second for up to 90 seconds (720 pictures), at 640 pixels wide with the highest point and outline limits. The full clip takes longer, and its detail is shared across many pictures.',
+  full: 'Uses every frame from your video at its original frame rate. Long clips create a very large formula and may take a long time to make or use in Desmos.',
   custom: 'Your own Desmos settings. Change the numbers in More Desmos settings to fine-tune them.',
 };
 const VIDEO_VALUES: Record<Exclude<VideoPreset, 'custom'>, { size: string; detail: string; cutoff: string; target?: number }> = {
@@ -37,7 +38,7 @@ const DESMOS_VALUES: Record<Exclude<DesmosPreset, 'custom'>, { frames: string; f
   pixels: { frames: '40', fps: '8', width: '320', budget: '9800', slots: '64' },
   detail: { frames: '24', fps: '8', width: '280', budget: '9800', slots: '96' },
   long: { frames: '80', fps: '8', width: '200', budget: '9800', slots: '48' },
-  full: { frames: '720', fps: '8', width: '640', budget: '9800', slots: '128' },
+  full: { frames: '1', fps: '8', width: '640', budget: '9800', slots: '128' },
 };
 
 function element<T extends HTMLElement>(id: string): T {
@@ -99,6 +100,7 @@ export function initializeSettingsUI() {
   const defaults = readCurrent('source');
   let preferredSize = 'source';
   let sourceHeight: number | null = null;
+  let sourceInfo: SourceInfo | null = null;
   let undoSnapshot: SettingsSnapshot | null = null;
   let saveTimer: number | null = null;
 
@@ -109,7 +111,13 @@ export function initializeSettingsUI() {
       ? 'Choose a video first to use a video quality preset.'
       : `${VIDEO_PRESET_TEXT[videoPreset.value as VideoPreset]}${note ? ` ${note}` : ''}`;
   };
-  const showDesmosHelp = () => { desmosHelp.textContent = DESMOS_PRESET_TEXT[desmosPreset.value as DesmosPreset]; };
+  const showDesmosHelp = () => {
+    desmosHelp.textContent = desmosPreset.value === 'full' && !sourceInfo
+      ? 'Choose a video to use every source frame. Long clips create a very large formula and may take a long time to make or use in Desmos.'
+      : desmosPreset.value === 'full' && sourceInfo
+        ? `Uses all ${Math.round(sourceInfo.frameCount)} source frames at ${sourceInfo.fps.toFixed(2)} FPS. This may create a very large formula and take a long time to make or use in Desmos.`
+        : DESMOS_PRESET_TEXT[desmosPreset.value as DesmosPreset];
+  };
 
   const writeSettings = (message: string) => {
     if (saveTimer !== null) window.clearTimeout(saveTimer);
@@ -144,10 +152,17 @@ export function initializeSettingsUI() {
   };
   const applyDesmosPreset = (preset: Exclude<DesmosPreset, 'custom'>) => {
     for (const [id, value] of Object.entries(DESMOS_VALUES[preset])) input(id).value = value;
+    if (preset === 'full' && sourceInfo) {
+      input('frames').value = String(Math.max(1, Math.round(sourceInfo.frameCount)));
+      input('fps').value = String(sourceInfo.fps);
+      (input('frames') as HTMLInputElement).max = String(Math.max(1, Math.round(sourceInfo.frameCount)));
+    }
     showDesmosHelp();
   };
-  const syncForSource = (height: number) => {
-    sourceHeight = height;
+  const syncForSource = (source: SourceInfo) => {
+    sourceHeight = source.height;
+    sourceInfo = source;
+    if (desmosPreset.value === 'full') applyDesmosPreset('full');
     if (videoPreset.value !== 'custom') {
       applyVideoPreset(videoPreset.value as Exclude<VideoPreset, 'custom'>);
       return;
@@ -251,7 +266,7 @@ export function initializeSettingsUI() {
   element<HTMLButtonElement>('confirmReset').addEventListener('click', () => {
     undoSnapshot = snapshot();
     apply(defaults);
-    if (sourceHeight !== null) syncForSource(sourceHeight);
+    if (sourceInfo !== null) syncForSource(sourceInfo);
     else applyVideoPreset('source');
     undoButton.hidden = false;
     dialog.close();
@@ -262,7 +277,7 @@ export function initializeSettingsUI() {
     const previous = undoSnapshot;
     undoSnapshot = null;
     apply(previous);
-    if (sourceHeight !== null) syncForSource(sourceHeight);
+    if (sourceInfo !== null) syncForSource(sourceInfo);
     undoButton.hidden = true;
     writeSettings('Your previous settings are back. Saved on this device.');
   });

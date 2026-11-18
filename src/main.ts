@@ -113,7 +113,7 @@ async function accept(f: File | undefined) {
       ...[1080, 720, 480, 360].filter((h) => h < info!.height).map((h) => new Option(`${h}p`, String(h))),
     );
     videoPresetSelect.disabled = false;
-    settingsUi.syncForSource(info.height);
+    settingsUi.syncForSource(info);
     audioInput.disabled = !info.hasAudio;
     audioInput.title = info.hasAudio ? 'Keep the sound from your original video' : 'This video does not have a sound track';
     audioOption.classList.toggle('is-unavailable', !info.hasAudio);
@@ -236,10 +236,11 @@ function showResult(blob: Blob, stats: RunStats, total: number) {
 
 async function runConvert() {
   if (!file || !info) return;
-  const fps = Math.min(num('fps'), info.fps);
+  const fullSource = $<HTMLSelectElement>('desmosPreset').value === 'full';
+  const fps = fullSource ? info.fps : Math.min(num('fps'), info.fps);
   const traceW = Math.max(48, num('width'));
   const traceH = Math.max(48, Math.round((traceW * info.height) / info.width));
-  const total = totalFrames(info, fps, num('frames'));
+  const total = fullSource ? Math.max(1, Math.round(info.frameCount)) : totalFrames(info, fps, num('frames'));
 
   const controller = (abort = new AbortController());
   showNotice('');

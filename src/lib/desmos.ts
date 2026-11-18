@@ -89,7 +89,7 @@ const BASE_STEP = 0.8;
 export type ClipOptions = { budget: number; maxSlots: number };
 
 /** Pack a clip into X / Y lists with one slot per contour rank; animate by sliding `f` from 1 to K. */
-export function clipExpressions(frames: Float32Array[], opts: ClipOptions): { lines: string[]; dropped: number } {
+function packClipChunk(frames: Float32Array[], opts: ClipOptions): { lines: string[]; dropped: number } {
   const count = Math.max(1, frames.length);
   const budget = Math.min(LIST_LIMIT, Math.max(400, Math.floor(opts.budget)));
   const perFrame = Math.max(1, Math.floor(budget / count));
@@ -170,6 +170,45 @@ export function clipExpressions(frames: Float32Array[], opts: ClipOptions): { li
     );
   }
   return { lines: out, dropped };
+}
+
+/** Split long clips into separate Desmos lists so every list stays below LIST_LIMIT. */
+export function clipExpressions(frames: Float32Array[], opts: ClipOptions): { lines: string[]; dropped: number } {
+  const maxChunkFrames = Math.max(1, Math.floor(Math.min(LIST_LIMIT, opts.budget) / MIN_SLOT));
+  if (frames.length <= maxChunkFrames) return packClipChunk(frames, opts);
+
+  const chunkCount = Math.ceil(frames.length / maxChunkFrames);
+  const chunkSize = Math.ceil(frames.length / chunkCount);
+  const lines = ['f=1', `K=${frames.length}`];
+  let dropped = 0;
+  let start = 0;
+  let chunkIndex = 1;
+
+  while (start < frames.length) {
+    const end = Math.min(frames.length, start + chunkSize);
+    const packed = packClipChunk(frames.slice(start, end), opts);
+    dropped += packed.dropped;
+    const xName = `X_{${chunkIndex}}`;
+    const yName = `Y_{${chunkIndex}}`;
+    for (const line of packed.lines) {
+      if (line.startsWith('X=')) lines.push(`${xName}${line.slice(1)}`);
+      else if (line.startsWith('Y=')) lines.push(`${yName}${line.slice(1)}`);
+      else if (line.startsWith('f=') || line.startsWith('K=')) continue;
+      else {
+        const globalFrameOffset = start;
+        const activeRange = `\\left\\{${start + 1}\\le f\\le ${end}\\right\\}`;
+        lines.push(
+          line
+            .replaceAll('X\\left[', `${xName}\\left[`)
+            .replaceAll('Y\\left[', `${yName}\\left[`)
+            .replaceAll('\\left(f-1\\right)', `\\left(f-${globalFrameOffset}\\right)`) + activeRange,
+        );
+      }
+    }
+    start = end;
+    chunkIndex++;
+  }
+  return { lines, dropped };
 }
 
 export const CLIP_LIST_LIMIT = LIST_LIMIT;
