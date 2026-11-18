@@ -20,15 +20,15 @@ test('long Desmos clips use bounded lists and a shared full-length frame slider'
   assert.ok(lines.includes('f=1'));
   const xLists = lines.filter((line) => line.startsWith('X_{'));
   const yLists = lines.filter((line) => line.startsWith('Y_{'));
-  assert.equal(xLists.length, 2);
-  assert.equal(yLists.length, 2);
+  assert.equal(xLists.length, 68);
+  assert.equal(yLists.length, 68);
   for (const line of [...xLists, ...yLists]) {
     const body = line.slice(line.indexOf('[') + 1, line.lastIndexOf(']'));
     assert.ok(body.split(',').length <= CLIP_LIST_LIMIT);
   }
-  const firstChunkShape = lines.find((line) => line.includes('\\left\\{1\\le f\\le 1350\\right\\}'));
-  const secondChunkShape = lines.find((line) => line.includes('\\left\\{1351\\le f\\le 2700\\right\\}'));
+  const firstChunkShape = lines.find((line) => line.includes('\\left\\{1\\le f\\le 40\\right\\}'));
+  const secondChunkShape = lines.find((line) => line.includes('\\left\\{41\\le f\\le 80\\right\\}'));
   assert.ok(firstChunkShape?.includes('X_{1}\\left['));
   assert.ok(secondChunkShape?.includes('X_{2}\\left['));
-  assert.ok(secondChunkShape?.includes('\\left(f-1350\\right)'));
+  assert.ok(secondChunkShape?.includes('\\left(f-40\\right)'));
 });

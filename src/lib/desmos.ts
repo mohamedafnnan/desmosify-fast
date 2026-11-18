@@ -4,6 +4,7 @@ import { splitContours } from './trace.ts';
 
 const LIST_LIMIT = 9800;
 const CHUNK_POINTS = 9000;
+const MAX_FRAMES_PER_DESMOS_CHUNK = 40;
 const GAP = 2;
 
 const num = (v: number) => (Number.isNaN(v) ? '0/0' : String(Math.round(v * 100) / 100));
@@ -174,10 +175,9 @@ function packClipChunk(frames: Float32Array[], opts: ClipOptions): { lines: stri
 
 /** Split long clips into separate Desmos lists so every list stays below LIST_LIMIT. */
 export function clipExpressions(frames: Float32Array[], opts: ClipOptions): { lines: string[]; dropped: number } {
-  const maxChunkFrames = Math.max(1, Math.floor(Math.min(LIST_LIMIT, opts.budget) / MIN_SLOT));
-  if (frames.length <= maxChunkFrames) return packClipChunk(frames, opts);
+  if (frames.length <= MAX_FRAMES_PER_DESMOS_CHUNK) return packClipChunk(frames, opts);
 
-  const chunkCount = Math.ceil(frames.length / maxChunkFrames);
+  const chunkCount = Math.ceil(frames.length / MAX_FRAMES_PER_DESMOS_CHUNK);
   const chunkSize = Math.ceil(frames.length / chunkCount);
   const lines = ['f=1', `K=${frames.length}`];
   let dropped = 0;

@@ -22,7 +22,7 @@ const DESMOS_PRESET_TEXT: Record<DesmosPreset, string> = {
   pixels: 'Up to 40 pictures, 320 pixels wide, with a larger point limit. The copied formula will be bigger.',
   detail: 'Up to 24 pictures (about 3 seconds at 8 FPS). A shorter clip gives each picture more room for points and shapes.',
   long: 'Up to 80 pictures (about 10 seconds at 8 FPS). The same point limit is spread across more pictures, so each may show fewer details.',
-  full: 'Uses every frame at its original frame rate and traces at the video’s full width. Long, wide clips can take a long time, and Desmos may run slowly.',
+  full: 'Uses every frame at its original rate and full video width. Each 40-picture section can use up to 9,800 points (about 245 per picture) for more detail. Long clips make a much bigger formula.',
   custom: 'Your own Desmos settings. Change the numbers in More Desmos settings to fine-tune them.',
 };
 const VIDEO_VALUES: Record<Exclude<VideoPreset, 'custom'>, { size: string; detail: string; cutoff: string; target?: number }> = {
@@ -113,9 +113,9 @@ export function initializeSettingsUI() {
   };
   const showDesmosHelp = () => {
     desmosHelp.textContent = desmosPreset.value === 'full' && !sourceInfo
-      ? 'Choose a video to use every source frame and its full pixel width. Long, wide clips can take a long time, and Desmos may run slowly.'
+      ? 'Choose a video to use every source frame and its full pixel width. 40-picture sections keep more detail, but long clips make a much bigger formula.'
       : desmosPreset.value === 'full' && sourceInfo
-        ? `Uses all ${Math.round(sourceInfo.frameCount)} source frames at ${sourceInfo.fps.toFixed(2)} FPS and the full ${sourceInfo.width}-pixel video width. Long, wide clips can take a long time, and Desmos may run slowly.`
+        ? `Uses all ${Math.round(sourceInfo.frameCount)} source frames at ${sourceInfo.fps.toFixed(2)} FPS and the full ${sourceInfo.width}-pixel width. Each 40-picture section can use up to 9,800 points (about 245 per picture) for more detail. The full formula will be much bigger.`
         : DESMOS_PRESET_TEXT[desmosPreset.value as DesmosPreset];
   };
 
