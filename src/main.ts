@@ -236,7 +236,7 @@ function showResult(blob: Blob, stats: RunStats, total: number) {
 
 async function runConvert() {
   if (!file || !info) return;
-  const fullSource = $<HTMLSelectElement>('desmosPreset').value === 'full';
+  const fullSource = $<HTMLSelectElement>('desmosPreset').value === 'ultra';
   const fps = fullSource ? info.fps : Math.min(num('fps'), info.fps);
   const traceW = Math.max(48, num('width'));
   const traceH = Math.max(48, Math.round((traceW * info.height) / info.width));

@@ -3,7 +3,7 @@ type SettingsSnapshot = Record<string, SettingValue>;
 import type { SourceInfo } from './lib/types.ts';
 
 type VideoPreset = 'source' | '720' | 'detail' | 'quality' | '360' | 'custom';
-type DesmosPreset = 'medium' | 'small' | 'pixels' | 'detail' | 'long' | 'full' | 'custom';
+type DesmosPreset = 'medium' | 'small' | 'pixels' | 'detail' | 'long' | 'ultra' | 'custom';
 
 const STORAGE_KEY = 'desmosify-fast.settings.v1';
 const IDS = ['size', 'detail', 'lineWidth', 'threads', 'cutoff', 'smooth', 'grid', 'dedup', 'vfr', 'audio', 'frames', 'fps', 'width', 'budget', 'slots', 'videoPreset', 'desmosPreset'] as const;
@@ -22,7 +22,7 @@ const DESMOS_PRESET_TEXT: Record<DesmosPreset, string> = {
   pixels: 'Up to 40 pictures, 320 pixels wide, with a larger point limit. The copied formula will be bigger.',
   detail: 'Up to 24 pictures (about 3 seconds at 8 FPS). A shorter clip gives each picture more room for points and shapes.',
   long: 'Up to 80 pictures (about 10 seconds at 8 FPS). The same point limit is spread across more pictures, so each may show fewer details.',
-  full: 'Uses every frame at its original rate and full video width. Each 40-picture section can use up to 9,800 points (about 245 per picture) for more detail. Long clips make a much bigger formula.',
+  ultra: 'Uses every source frame at its original rate and full video width, with no preset frame cap. Each 40-picture section can use up to 9,800 points (about 245 per picture). Long clips make a much bigger formula.',
   custom: 'Your own Desmos settings. Change the numbers in More Desmos settings to fine-tune them.',
 };
 const VIDEO_VALUES: Record<Exclude<VideoPreset, 'custom'>, { size: string; detail: string; cutoff: string; target?: number }> = {
@@ -38,7 +38,7 @@ const DESMOS_VALUES: Record<Exclude<DesmosPreset, 'custom'>, { frames: string; f
   pixels: { frames: '40', fps: '8', width: '320', budget: '9800', slots: '64' },
   detail: { frames: '24', fps: '8', width: '280', budget: '9800', slots: '96' },
   long: { frames: '80', fps: '8', width: '200', budget: '9800', slots: '48' },
-  full: { frames: '1', fps: '8', width: '640', budget: '9800', slots: '128' },
+  ultra: { frames: '1', fps: '8', width: '640', budget: '9800', slots: '128' },
 };
 
 function element<T extends HTMLElement>(id: string): T {
@@ -112,10 +112,10 @@ export function initializeSettingsUI() {
       : `${VIDEO_PRESET_TEXT[videoPreset.value as VideoPreset]}${note ? ` ${note}` : ''}`;
   };
   const showDesmosHelp = () => {
-    desmosHelp.textContent = desmosPreset.value === 'full' && !sourceInfo
+    desmosHelp.textContent = desmosPreset.value === 'ultra' && !sourceInfo
       ? 'Choose a video to use every source frame and its full pixel width. 40-picture sections keep more detail, but long clips make a much bigger formula.'
-      : desmosPreset.value === 'full' && sourceInfo
-        ? `Uses all ${Math.round(sourceInfo.frameCount)} source frames at ${sourceInfo.fps.toFixed(2)} FPS and the full ${sourceInfo.width}-pixel width. Each 40-picture section can use up to 9,800 points (about 245 per picture) for more detail. The full formula will be much bigger.`
+      : desmosPreset.value === 'ultra' && sourceInfo
+        ? `Uses all ${Math.round(sourceInfo.frameCount)} source frames at ${sourceInfo.fps.toFixed(2)} FPS and the full ${sourceInfo.width}-pixel width, with no preset frame cap. Each 40-picture section can use up to 9,800 points (about 245 per picture). The full formula will be much bigger.`
         : DESMOS_PRESET_TEXT[desmosPreset.value as DesmosPreset];
   };
 
@@ -152,13 +152,13 @@ export function initializeSettingsUI() {
   };
   const applyDesmosPreset = (preset: Exclude<DesmosPreset, 'custom'>) => {
     for (const [id, value] of Object.entries(DESMOS_VALUES[preset])) input(id).value = value;
-    if (preset === 'full' && sourceInfo) {
+    if (preset === 'ultra' && sourceInfo) {
       input('frames').value = String(Math.max(1, Math.round(sourceInfo.frameCount)));
       input('fps').value = String(sourceInfo.fps);
       (input('frames') as HTMLInputElement).max = String(Math.max(1, Math.round(sourceInfo.frameCount)));
       input('width').value = String(sourceInfo.width);
       (input('width') as HTMLInputElement).max = String(sourceInfo.width);
-    } else if (preset !== 'full') {
+    } else if (preset !== 'ultra') {
       (input('width') as HTMLInputElement).max = '640';
     }
     showDesmosHelp();
@@ -166,7 +166,7 @@ export function initializeSettingsUI() {
   const syncForSource = (source: SourceInfo) => {
     sourceHeight = source.height;
     sourceInfo = source;
-    if (desmosPreset.value === 'full') applyDesmosPreset('full');
+    if (desmosPreset.value === 'ultra') applyDesmosPreset('ultra');
     if (videoPreset.value !== 'custom') {
       applyVideoPreset(videoPreset.value as Exclude<VideoPreset, 'custom'>);
       return;
@@ -197,8 +197,9 @@ export function initializeSettingsUI() {
     }
     videoPreset.value = String(values.videoPreset ?? 'custom');
     desmosPreset.value = String(values.desmosPreset ?? 'custom');
+    if (desmosPreset.value === 'full') desmosPreset.value = 'ultra';
     if (!['source', '720', 'detail', 'quality', '360', 'custom'].includes(videoPreset.value)) videoPreset.value = 'custom';
-    if (!['medium', 'small', 'pixels', 'detail', 'long', 'full', 'custom'].includes(desmosPreset.value)) desmosPreset.value = 'custom';
+    if (!['medium', 'small', 'pixels', 'detail', 'long', 'ultra', 'custom'].includes(desmosPreset.value)) desmosPreset.value = 'custom';
     for (const id of RANGE_IDS) updateReadout(id);
     showVideoHelp();
     showDesmosHelp();
