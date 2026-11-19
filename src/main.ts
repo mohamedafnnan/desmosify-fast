@@ -276,6 +276,10 @@ async function runConvert() {
 
 function openPreview() {
   if (!clip) return;
+  const desmosCoordinates = document.getElementById('desmosCoordinates');
+  if (desmosCoordinates) {
+    desmosCoordinates.textContent = `For this drawing, set the wrench Graph Settings bounds to x: 0 to ${clip.traceW}, y: 0 to ${clip.traceH}.`;
+  }
   const canvas = $<HTMLCanvasElement>('canvas');
   const pw = 720;
   const ph = even((pw * clip.traceH) / clip.traceW);

@@ -83,7 +83,7 @@
               <article class="output-choice output-choice-desmos">
                 <div class="choice-symbol desmos-symbol" aria-hidden="true">ƒ</div><div class="choice-copy"><h3>A Desmos drawing</h3><p>Make formulas you can copy and paste into Desmos.</p></div><button id="convert" class="button-secondary" type="button" disabled>Make Desmos formulas</button>
                 <div class="preset-block desmos-preset-block">
-                  <label class="setting" for="desmosPreset"><span class="setting-title">Desmos export preset</span><select id="desmosPreset" aria-describedby="desmosPresetHelp"><option value="medium">Medium — good for most clips</option><option value="small">Small formula — up to 2.5 seconds</option><option value="pixels">More pixels — wider drawing</option><option value="detail">More detail per picture — shorter clip</option><option value="long">Longer clip — up to 10 seconds</option><option value="ultra">Ultra / Maximum — every frame + full pixels</option><option value="custom">My own settings</option></select></label>
+                  <label class="setting" for="desmosPreset"><span class="setting-title">Desmos export preset</span><select id="desmosPreset" aria-describedby="desmosPresetHelp"><option value="medium">Medium — good for most clips</option><option value="small">Small formula — up to 2.5 seconds</option><option value="pixels">More pixels — wider drawing</option><option value="detail">More detail per picture — shorter clip</option><option value="long">Longer clip — up to 10 seconds</option><option value="smooth">Smoother full clip — up to 8 FPS</option><option value="ultra">Ultra / Maximum — every frame + full pixels</option><option value="custom">My own settings</option></select></label>
                   <p id="desmosPresetHelp" class="help" role="status" aria-live="polite">Up to 40 pictures (about 5 seconds at 8 FPS), 200 pixels wide. A good balance of clip length and detail.</p>
                 </div>
                 <details class="export-settings"><summary><span>More Desmos settings</span><span class="summary-note">Optional</span></summary><p class="help">These only change your Desmos drawing. The starting choices are ready to try.</p>
@@ -102,11 +102,12 @@
                     <li>In the preview, choose <strong>The whole clip</strong>, then click <strong>Copy formulas</strong>.</li>
                     <li>Open the <a href="https://www.desmos.com/calculator" target="_blank" rel="noopener noreferrer">Desmos Graphing Calculator</a>.</li>
                     <li>Click an empty expression line and paste: <kbd>Ctrl</kbd> + <kbd>V</kbd> on Windows or <kbd>⌘</kbd> + <kbd>V</kbd> on Mac.</li>
-                    <li>If the graph looks blank, click the wrench and set the graph window to match your video: x-axis from <strong>0</strong> to its width in pixels, and y-axis from <strong>0</strong> to its height. For a 1920 × 1080 video, use x: 0 to 1920 and y: 0 to 1080.</li>
+                    <li>If the graph looks blank, click the wrench, open <strong>Graph Settings</strong>, and enter the x/y-axis bounds shown below. These exact values account for the drawing width and your video’s aspect ratio.</li>
                     <li>On the <strong>f</strong> slider, click either end number (it may show −10 and 10). Set the lower bound to <strong>1</strong>, the upper bound to the number beside <strong>K</strong>, and the step to <strong>1</strong>.</li>
                     <li>Click the <strong>▶ play button</strong> beside the <strong>f</strong> slider. Your clip will play from its first frame to its last.</li>
                   </ol>
-                  <p class="help">Ultra / Maximum clips make much bigger formulas. Desmos may need extra time to load them.</p>
+                  <p id="desmosCoordinates" class="help">Make the Desmos formulas to see the exact graph bounds for your drawing here.</p>
+                  <p class="help">Ultra / Maximum clips make much bigger formulas. Choose Smoother full clip to keep the duration while sampling fewer frames.</p>
                 </section>
               </article>
             </div>
