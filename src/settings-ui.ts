@@ -6,7 +6,7 @@ type VideoPreset = 'source' | '720' | 'detail' | 'quality' | '360' | 'custom';
 type DesmosPreset = 'medium' | 'small' | 'pixels' | 'detail' | 'long' | 'smooth' | 'ultra' | 'custom';
 
 const STORAGE_KEY = 'desmosify-fast.settings.v1';
-const IDS = ['size', 'detail', 'lineWidth', 'threads', 'cutoff', 'curveTolerance', 'smooth', 'grid', 'dedup', 'vfr', 'audio', 'frames', 'fps', 'width', 'budget', 'slots', 'videoPreset', 'desmosPreset'] as const;
+const IDS = ['size', 'detail', 'lineWidth', 'threads', 'cutoff', 'curveTolerance', 'smooth', 'grid', 'dedup', 'preserveLines', 'vfr', 'audio', 'frames', 'fps', 'width', 'budget', 'slots', 'videoPreset', 'desmosPreset'] as const;
 const RANGE_IDS = ['detail', 'cutoff', 'curveTolerance'] as const;
 const VIDEO_PRESET_TEXT: Record<VideoPreset, string> = {
   source: 'Keeps your video’s original size with normal detail. More pixels can look sharper, but may take longer.',
@@ -271,6 +271,14 @@ export function initializeSettingsUI() {
         scheduleSave();
       });
       control.addEventListener('change', () => scheduleSave());
+    } else if (id === 'preserveLines') {
+      control.addEventListener('change', () => {
+        videoPreset.value = 'custom';
+        desmosPreset.value = 'custom';
+        showVideoHelp();
+        showDesmosHelp();
+        scheduleSave();
+      });
     } else if (id !== 'videoPreset' && id !== 'desmosPreset') control.addEventListener('change', () => scheduleSave());
   }
   videoPreset.addEventListener('change', () => {

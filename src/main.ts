@@ -117,8 +117,9 @@ async function accept(f: File | undefined) {
     audioInput.disabled = !info.hasAudio;
     audioInput.title = info.hasAudio ? 'Keep the sound from your original video' : 'This video does not have a sound track';
     audioOption.classList.toggle('is-unavailable', !info.hasAudio);
-    audioHelp.textContent = info.hasAudio ? 'This video has sound. Turn this on to keep it.' : 'This video has no sound track to keep.';
-    if (!info.hasAudio) audioInput.checked = false;
+    audioHelp.textContent = info.hasAudio
+      ? audioInput.checked ? 'Sound is on and will be kept in the finished video.' : 'Sound is available. Turn this on to keep it.'
+      : 'This video has no sound track to keep.';
     busy(false);
   } catch (error) {
     file = null;
@@ -127,7 +128,6 @@ async function accept(f: File | undefined) {
     $('fileInfo').textContent = '';
     console.warn('Could not open this video:', error);
     audioInput.disabled = true;
-    audioInput.checked = false;
     audioHelp.textContent = 'Choose a video with sound first.';
     audioOption.classList.add('is-unavailable');
     const reason = error instanceof Error ? error.message : 'The browser could not read this file.';
@@ -148,6 +148,9 @@ $<HTMLInputElement>('cutoff').addEventListener('input', () => {
   $('cutoffValue').textContent = num('cutoff').toFixed(2);
 });
 cancelBtn.addEventListener('click', () => abort?.abort());
+audioInput.addEventListener('change', () => {
+  if (info?.hasAudio) audioHelp.textContent = audioInput.checked ? 'Sound is on and will be kept in the finished video.' : 'Sound is available but will be left out.';
+});
 
 function baseParams(traceW: number, traceH: number, fps: number, curveTolerance = DEFAULT_PROCESS.tolerance): Params {
   return {
@@ -156,7 +159,7 @@ function baseParams(traceW: number, traceH: number, fps: number, curveTolerance 
     fps,
     cutoff: num('cutoff'),
     smooth: checked('smooth'),
-    minLength: Math.max(3, Math.round(traceW / 160)),
+    minLength: checked('preserveLines') ? 3 : Math.max(3, Math.round(traceW / 160)),
     tolerance: curveTolerance,
     dedup: checked('dedup'),
     dedupMean: 0.6,
@@ -197,7 +200,7 @@ async function runRender() {
       outH,
       style: { grid: checked('grid'), color: DEFAULT_COLOR, lineWidth: lineWidthFor(outH, num('lineWidth')) },
       vfr: checked('vfr'),
-      audio: checked('audio') ? file : null,
+      audio: checked('audio') && info.hasAudio ? file : null,
       signal: controller.signal,
       onProgress: (p) => onProgress(p, 'Finding the lines'),
       onNotice: (m) => showNotice(m),
