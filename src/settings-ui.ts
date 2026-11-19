@@ -104,10 +104,11 @@ export function initializeSettingsUI() {
   let sourceHeight: number | null = null;
   let sourceInfo: SourceInfo | null = null;
   let undoSnapshot: SettingsSnapshot | null = null;
+  let audioPreferenceSet = false;
   let saveTimer: number | null = null;
 
   const setStatus = (message: string) => { status.textContent = message; };
-  const snapshot = () => readCurrent(preferredSize || sizeSelect.value);
+  const snapshot = () => ({ ...readCurrent(preferredSize || sizeSelect.value), audioPreferenceSet });
   const showVideoHelp = (note = '') => {
     videoHelp.textContent = sourceHeight === null
       ? 'Choose a video first to use a video quality preset.'
@@ -229,6 +230,8 @@ export function initializeSettingsUI() {
         const value = parsed[id];
         if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') saved[id] = String(value);
       }
+      audioPreferenceSet = parsed.audioPreferenceSet === true;
+      if (!audioPreferenceSet && parsed.audio === false) saved.audio = true;
       apply(saved);
       setStatus('Your last choices were brought back from this browser. Your video is never saved.');
     } else {
@@ -271,6 +274,11 @@ export function initializeSettingsUI() {
         scheduleSave();
       });
       control.addEventListener('change', () => scheduleSave());
+    } else if (id === 'audio') {
+      control.addEventListener('change', () => {
+        audioPreferenceSet = true;
+        scheduleSave();
+      });
     } else if (id === 'preserveLines') {
       control.addEventListener('change', () => {
         videoPreset.value = 'custom';

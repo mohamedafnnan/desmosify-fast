@@ -9,7 +9,7 @@
 - [x] Add a Desmos curve-simplification control so users can trade tiny bends/detail for simpler curves, independently of video rendering.
 - [x] Use the source-reported frame rate without a fixed 120-FPS ceiling; describe the 2,160 value as the source-reported count, not an app ceiling, and explain uniform timestamp sampling for variable-frame-rate sources.
 - [x] Show the decoder/container reason when a video cannot be opened so unsupported mobile browser/codecs are diagnosable.
-- [x] Default “Keep the video's sound” to checked for videos that contain audio; preserve that preference across silent clips and explain whether it will be kept.
+- [x] Default “Keep the video's sound” to checked for videos that contain audio; migrate the previous implicit audio-off default once while preserving explicit choices made in this version, and explain whether sound will be kept.
 - [x] Add a plain-language “Keep tiny outlines” option that keeps short marks while warning that it may also keep noise.
 - [x] Add on-page steps for copying formulas, matching Desmos graph bounds to the exact exported drawing size (including custom aspect ratios), setting f from 1 to K, and playing the clip.
 - [x] Use the selected video’s native pixel width for full-source exports instead of the normal 640-pixel preset ceiling.
