@@ -130,7 +130,8 @@ async function accept(f: File | undefined) {
     audioInput.checked = false;
     audioHelp.textContent = 'Choose a video with sound first.';
     audioOption.classList.add('is-unavailable');
-    showNotice('We could not open that video. Try another clip (MP4, MOV, WebM, or MKV).', true);
+    const reason = error instanceof Error ? error.message : 'The browser could not read this file.';
+    showNotice(`${reason} Open this page in an up-to-date browser and try an MP4 with H.264 video. If it still fails, share your device, OS/browser version, video format, and this message.`, true);
     busy(false);
   }
 }
@@ -148,7 +149,7 @@ $<HTMLInputElement>('cutoff').addEventListener('input', () => {
 });
 cancelBtn.addEventListener('click', () => abort?.abort());
 
-function baseParams(traceW: number, traceH: number, fps: number): Params {
+function baseParams(traceW: number, traceH: number, fps: number, curveTolerance = DEFAULT_PROCESS.tolerance): Params {
   return {
     traceW,
     traceH,
@@ -156,7 +157,7 @@ function baseParams(traceW: number, traceH: number, fps: number): Params {
     cutoff: num('cutoff'),
     smooth: checked('smooth'),
     minLength: Math.max(3, Math.round(traceW / 160)),
-    tolerance: DEFAULT_PROCESS.tolerance,
+    tolerance: curveTolerance,
     dedup: checked('dedup'),
     dedupMean: 0.6,
   };
@@ -253,7 +254,7 @@ async function runConvert() {
   try {
     const { frames } = await collectFrames({
       file,
-      params: baseParams(traceW, traceH, fps),
+      params: baseParams(traceW, traceH, fps, num('curveTolerance')),
       total,
       threads: num('threads'),
       signal: controller.signal,

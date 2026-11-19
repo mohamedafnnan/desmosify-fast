@@ -16,7 +16,7 @@ export async function probe(file: File): Promise<SourceInfo> {
       track.getFirstTimestamp(),
       input.getPrimaryAudioTrack().catch(() => null),
     ]);
-    const fps = Math.max(1, Math.min(120, stats.averagePacketRate || 30));
+    const fps = Math.max(1, stats.averagePacketRate || 30);
     return {
       width: Math.round(width),
       height: Math.round(height),
