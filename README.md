@@ -5,7 +5,7 @@ Turn any video into **line art that looks like it was drawn in [Desmos](https://
 You drop in a video. Each frame is reduced to its outlines (edges), and the outlines are turned into lines. You then get one of two things:
 
 1. **A rendered video.** The lines are drawn frame by frame, optionally over a Desmos-style grid, and encoded to an MP4 (or WebM) you can download.
-2. **Desmos expressions.** Text you can paste into the real Desmos graphing calculator so the shapes are drawn by Desmos itself, either one exact frame at a time or a whole short clip packed into a few lists you animate with a slider.
+2. **Desmos expressions.** Text you can paste into the real Desmos graphing calculator so Desmos draws the traced outlines. You can export one still picture or make an animated clip controlled by a slider. The animation can cover the whole source clip; choose the preset that fits your balance of smoothness, detail, and Desmos performance.
 
 ## How it works
 
@@ -37,10 +37,12 @@ For every frame:
 
 ### Desmos export
 
-- **Current frame (exact):** the frame being previewed as lists of points drawn with `polygon()`. Paste the lines into a Desmos graph.
-- **Whole clip (compact):** the clip packed into two lists, `X` and `Y`. Paste it into Desmos and drag the slider `f` from 1 to the number of frames to animate it. To fit Desmos' list limit, only the longest contours are kept, and the note under the export box says how many were dropped. The export settings (frames, fps, width, budget, contours) are under **Desmos export settings**.
+- **Current picture:** exports the previewed picture as point lists and `polygon()` expressions. This is a still drawing, not an animation.
+- **Whole clip:** exports an animated drawing. Paste the formulas into Desmos, set the `f` slider from `1` to `K` with a step of `1`, and press play beside `f`. The exporter divides long animations into manageable formula sections while keeping one slider for the full clip.
+- **Smoother full clip:** keeps the source duration but samples at up to 8 pictures per second and caps the trace width at 640 pixels. This makes a smaller export than Ultra and may be easier for Desmos to play, but skips some source frames and has less fine detail.
+- **Ultra / Maximum:** uses every source frame at the source frame rate and traces at the source video width. This gives the closest frame-by-frame animation of the full clip, but can create a very large graph and may lag or take a long time to paste, calculate, or animate.
 
-Clip export has been tested for structure only; I have not pasted its output into the live Desmos calculator.
+In every animated preset, the app converts video frames into traced outline curves; it does **not** recover the video's original mathematical equations or preserve its exact pixels, colors, or audio. The point budget and contour limit under **More Desmos settings** may simplify curves or skip small outlines to keep formulas within Desmos list limits. A larger budget and more contours can preserve more detail but may increase lag. After generating formulas, use the displayed x/y bounds in Desmos **Graph Settings** if the graph appears blank. For a different compromise, adjust the frame count, FPS, drawing width, point budget, and contour limit individually.
 
 ## Limits
 
