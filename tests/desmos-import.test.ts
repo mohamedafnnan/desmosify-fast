@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseDesmosImport } from '../src/lib/desmos-import.ts';
 
-test('imports a Desmos graph JSON export with bounds and slider definitions', () => {
+test('inspects a Desmos graph JSON file with bounds and slider definitions', () => {
   const result = parseDesmosImport(JSON.stringify({
     version: 10,
     expressions: {
@@ -12,7 +12,7 @@ test('imports a Desmos graph JSON export with bounds and slider definitions', ()
       ],
     },
     graph: { viewport: { xmin: 0, xmax: 1920, ymin: 0, ymax: 1080 } },
-  }), 'drawing.desmos');
+  }), 'drawing.json');
   assert.equal(result.format, 'desmos-json');
   assert.equal(result.expressions.length, 2);
   assert.deepEqual(result.viewport, { xmin: 0, xmax: 1920, ymin: 0, ymax: 1080 });

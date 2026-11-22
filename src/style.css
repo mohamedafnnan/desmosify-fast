@@ -81,7 +81,7 @@ h2 { margin: 0; color: var(--ink); font-size: 23px; line-height: 1.18; letter-sp
 .desmos-preset-block { grid-column: 1 / -1; width: 100%; border-color: #f0d8d4; background: #fff9f7; }
 .setting { display: grid; align-content: start; gap: 7px; min-width: 0; color: var(--ink); font-size: 14px; font-weight: 700; }
 .setting-title { color: var(--ink); font-weight: 850; }
-input[type='number'], select, textarea { width: 100%; min-height: 44px; padding: 9px 12px; color: var(--ink); background: #fbfcff; border: 1px solid #c8d3e6; border-radius: 11px; }
+input[type='number'], input[type='url'], select, textarea { width: 100%; min-height: 44px; padding: 9px 12px; color: var(--ink); background: #fbfcff; border: 1px solid #c8d3e6; border-radius: 11px; }
 select { cursor: pointer; }
 .setting-wide { grid-column: 1 / -1; }
 .range-line { display: flex; align-items: center; gap: 12px; }
@@ -133,6 +133,10 @@ button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
 .desmos-copy-guide kbd { display: inline-block; padding: 0 5px; border: 1px solid #e4d8d6; border-radius: 4px; background: #fff; font: inherit; font-size: 12px; }
 .desmos-copy-guide > .help { display: block; margin: 7px 0 0; }
 .import-panel { display: grid; gap: 10px; margin-top: 14px; padding: 15px; border: 1px solid #d9dff0; border-radius: 15px; background: #f8faff; }
+.desmos-link-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.desmos-link-panel > .help { margin: 0; }
+.desmos-native-steps { display: grid; gap: 5px; margin: 0; padding-left: 22px; color: var(--ink); font-size: 13px; }
+.desmos-open-blank { width: fit-content; }
 .import-heading { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
 .import-heading h3 { margin: 0; color: var(--ink); font-size: 15px; font-weight: 900; }
 .import-heading p { margin: 3px 0 0; }
@@ -224,6 +228,8 @@ textarea { min-height: 180px; resize: vertical; font-family: ui-monospace, SFMon
   .export-mode-label, .export-heading > button { width: 100%; }
   .import-heading { display: grid; }
   .import-button { width: 100%; }
+  .desmos-link-row { grid-template-columns: 1fr; }
+  .desmos-link-row > button, .desmos-open-blank { width: 100%; }
   .import-drop { display: grid; }
   .page-footer { flex-direction: column; gap: 5px; }
 }

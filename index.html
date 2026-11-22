@@ -113,11 +113,19 @@
                 </section>
               </article>
             </div>
+            <section class="import-panel desmos-link-panel" aria-labelledby="desmos-link-heading">
+              <div><h3 id="desmos-link-heading">Open or import a Desmos graph</h3><p class="help">Desmos can open a shared graph link. Its regular calculator does not have a button to upload a local graph JSON file.</p></div>
+              <div class="desmos-link-row"><label class="setting" for="desmosGraphLink"><span class="setting-title">Shared graph link</span><input id="desmosGraphLink" type="url" inputmode="url" placeholder="https://www.desmos.com/calculator/…" /></label><button id="openDesmosGraph" class="button-secondary" type="button">Open graph</button></div>
+              <p id="desmosGraphLinkStatus" class="help" role="status" aria-live="polite">To import a shared graph into another graph, copy its link and paste it into an empty expression line in Desmos.</p>
+              <ol class="desmos-native-steps"><li>To view a graph, paste its link above and choose <strong>Open graph</strong>.</li><li>To add its expressions to a new graph, open a blank graph in Desmos and paste the share link into an empty expression line.</li><li>To add an image, choose <strong>+ Add Item → Image</strong> in Desmos, or drag the image into its expression list.</li></ol>
+              <a class="button-secondary desmos-open-blank" href="https://www.desmos.com/calculator" target="_blank" rel="noopener noreferrer">Open a blank Desmos graph</a>
+            </section>
             <section class="import-panel" aria-labelledby="import-heading">
-              <div class="import-heading"><div><h3 id="import-heading">Inspect an existing Desmos file</h3><p class="help">Already have a <code>.desmos</code>, JSON, or formula text file? Drop it here to see exactly what it contains. It stays on this device.</p></div><label class="button-secondary import-button" for="desmosImportFile">Choose file<input id="desmosImportFile" type="file" accept=".desmos,.json,.txt,text/plain,application/json" /></label></div>
-              <label id="desmosImportDrop" class="import-drop" for="desmosImportFile"><span class="upload-icon" aria-hidden="true">↑</span><span id="desmosImportName" class="drop-title">Drop a Desmos file here or click to choose one</span><small>.desmos, .json, or .txt · up to 8 MB</small></label>
-              <p id="desmosImportStatus" class="help" role="status" aria-live="polite">Nothing imported yet.</p>
-              <textarea id="desmosImportPreview" class="import-preview" readonly hidden spellcheck="false" aria-label="Imported Desmos formulas"></textarea>
+              <div class="import-heading"><div><h3 id="import-heading">Inspect formulas in a local file</h3><p class="help">Choose JSON containing Desmos expressions or a text file with one formula per line. This only reads the file here; it does not upload or open it in Desmos.</p></div><label class="button-secondary import-button" for="desmosImportFile">Choose file<input id="desmosImportFile" type="file" accept=".json,.txt,text/plain,application/json" /></label></div>
+              <label id="desmosImportDrop" class="import-drop" for="desmosImportFile"><span class="upload-icon" aria-hidden="true">↑</span><span id="desmosImportName" class="drop-title">Drop a JSON or formula text file here</span><small>.json or .txt · up to 8 MB · inspected on this device</small></label>
+              <p id="desmosImportStatus" class="help" role="status" aria-live="polite">Nothing inspected yet.</p>
+              <textarea id="desmosImportPreview" class="import-preview" readonly hidden spellcheck="false" aria-label="Formulas found in the local file"></textarea>
+              <button id="copyImportedFormulas" class="button-secondary" type="button" hidden>Copy formulas to paste into Desmos</button>
             </section>
             <div id="progress" class="progress" hidden aria-live="polite"><div class="progress-top"><strong>Making your line art…</strong><span id="progressText"></span></div><div class="bar" role="progressbar" aria-label="Making your line art" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="barFill"></div></div><button id="cancel" class="button-text" type="button" hidden>Stop</button></div>
             <p id="notice" class="notice" role="status" aria-live="polite" hidden></p>

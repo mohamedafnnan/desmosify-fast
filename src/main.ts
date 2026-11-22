@@ -7,6 +7,7 @@ import { collectFrames, renderVideo } from './orchestrator.ts';
 import type { Progress, RunStats } from './orchestrator.ts';
 import { probe } from './probe.ts';
 import { parseDesmosImport } from './lib/desmos-import.ts';
+import { parseDesmosGraphLink } from './lib/desmos-links.ts';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const num = (id: string) => Number($<HTMLInputElement>(id).value);
@@ -150,11 +151,34 @@ const desmosImportDrop = $<HTMLLabelElement>('desmosImportDrop');
 const desmosImportName = $<HTMLElement>('desmosImportName');
 const desmosImportStatus = $<HTMLParagraphElement>('desmosImportStatus');
 const desmosImportPreview = $<HTMLTextAreaElement>('desmosImportPreview');
+const copyImportedFormulas = $<HTMLButtonElement>('copyImportedFormulas');
+const desmosGraphLink = $<HTMLInputElement>('desmosGraphLink');
+const openDesmosGraph = $<HTMLButtonElement>('openDesmosGraph');
+const desmosGraphLinkStatus = $<HTMLParagraphElement>('desmosGraphLinkStatus');
+let inspectedFormulaText = '';
+function openSharedDesmosGraph() {
+  const url = parseDesmosGraphLink(desmosGraphLink.value);
+  if (!url) {
+    desmosGraphLinkStatus.textContent = 'Paste an HTTPS Desmos Graphing Calculator share link, such as https://www.desmos.com/calculator/…';
+    return;
+  }
+  window.open(url, '_blank', 'noopener,noreferrer');
+  desmosGraphLinkStatus.textContent = 'Opened the shared graph in a new tab. To add it to another graph, paste its link into an empty expression line there.';
+}
+openDesmosGraph.addEventListener('click', openSharedDesmosGraph);
+desmosGraphLink.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    openSharedDesmosGraph();
+  }
+});
 async function inspectDesmosFile(candidate: File | undefined) {
   if (!candidate) return;
   desmosImportFile.value = '';
   desmosImportName.textContent = candidate.name;
   desmosImportStatus.textContent = 'Reading your file…';
+  inspectedFormulaText = '';
+  copyImportedFormulas.hidden = true;
   desmosImportPreview.hidden = true;
   try {
     const parsed = parseDesmosImport(await candidate.text(), candidate.name);
@@ -163,16 +187,18 @@ async function inspectDesmosFile(candidate: File | undefined) {
       : 'no graph bounds found';
     const sliderText = parsed.sliders.length ? `sliders/variables: ${parsed.sliders.join(', ')}` : 'no simple slider definitions found';
     const warningText = parsed.warnings.length ? ` ${parsed.warnings.join(' ')}` : '';
-    desmosImportStatus.textContent = `${parsed.expressions.length} formula${parsed.expressions.length === 1 ? '' : 's'} imported · ${bounds} · ${sliderText}.${warningText}`;
-    desmosImportPreview.value = parsed.expressions
-      .map((expression, index) => `${index + 1}. ${expression.latex}${expression.hidden ? '  [hidden]' : ''}`)
-      .join('\n');
+    desmosImportStatus.textContent = `Found ${parsed.expressions.length} formula${parsed.expressions.length === 1 ? '' : 's'} · ${bounds} · ${sliderText}.${warningText} This file has only been inspected here.`;
+    inspectedFormulaText = parsed.expressions.map((expression) => expression.latex).join('\n');
+    desmosImportPreview.value = inspectedFormulaText;
     desmosImportPreview.hidden = false;
+    copyImportedFormulas.hidden = false;
   } catch (error) {
     const reason = error instanceof Error ? error.message : 'The browser could not read this file.';
     desmosImportStatus.textContent = reason;
+    inspectedFormulaText = '';
     desmosImportPreview.value = '';
     desmosImportPreview.hidden = true;
+    copyImportedFormulas.hidden = true;
   }
 }
 desmosImportFile.addEventListener('change', () => void inspectDesmosFile(desmosImportFile.files?.[0]));
@@ -182,6 +208,17 @@ desmosImportDrop.addEventListener('drop', (e) => {
   e.preventDefault();
   desmosImportDrop.classList.remove('over');
   void inspectDesmosFile(e.dataTransfer?.files[0]);
+});
+copyImportedFormulas.addEventListener('click', async () => {
+  if (!inspectedFormulaText) return;
+  try {
+    await navigator.clipboard.writeText(inspectedFormulaText);
+    desmosImportStatus.textContent = 'Copied the formulas. Open Desmos, click an empty expression line, and paste.';
+  } catch {
+    desmosImportPreview.focus();
+    desmosImportPreview.select();
+    desmosImportStatus.textContent = 'Automatic copy was blocked. The formulas are selected; copy them and paste into an empty Desmos expression line.';
+  }
 });
 $<HTMLInputElement>('cutoff').addEventListener('input', () => {
   $('cutoffValue').textContent = num('cutoff').toFixed(2);

@@ -1,5 +1,11 @@
 # TODO
 
+## Desmos graph links and local formula files
+
+- [x] Let users enter an HTTPS Desmos Graphing Calculator share link and open it in a new tab; reject non-Desmos, non-HTTPS, and non-Graphing-Calculator URLs.
+- [x] Explain that to import a shared graph into another graph, users open a blank Desmos graph and paste the share link into an empty expression line; explain that images can be added with **+ Add Item → Image** or by dragging them into the expression list.
+- [x] Keep local JSON and one-formula-per-line text files as a browser-only inspection/copy workflow. State plainly that this does not upload or open a local graph-state file in Desmos; remove the `.desmos` native-upload claim and provide a copy/paste route for formulas.
+
 ## Beginner-friendly settings presets
 
 - [x] Add video-quality presets for original size, up to 720p, extra line detail, high quality, and quick/small output.

@@ -97,7 +97,7 @@ function sliderNames(expressions: ImportedExpression[]): string[] {
 }
 
 export function parseDesmosImport(text: string, filename = 'import.txt'): DesmosImport {
-  if (new TextEncoder().encode(text).byteLength > MAX_IMPORT_BYTES) throw new Error('That file is larger than 8 MB. Choose a smaller Desmos export.');
+  if (new TextEncoder().encode(text).byteLength > MAX_IMPORT_BYTES) throw new Error('That file is larger than 8 MB. Choose a smaller JSON or text file.');
   const warnings: string[] = [];
   const trimmed = text.trim();
   if (!trimmed) throw new Error('The selected file is empty.');
@@ -115,7 +115,7 @@ export function parseDesmosImport(text: string, filename = 'import.txt'): Desmos
     // Desmos formulas are also commonly saved as one formula per line.
   }
   if (expressions.length === 0) {
-    if (parsedJson) throw new Error('No Desmos formulas were found. Use a .desmos export, JSON with latex fields, or one formula per line.');
+    if (parsedJson) throw new Error('No Desmos formulas were found. Use JSON with formula fields or a text file with one formula per line.');
     expressions = trimmed
       .split(/\r?\n/)
       .map((line) => line.trim())
@@ -124,10 +124,10 @@ export function parseDesmosImport(text: string, filename = 'import.txt'): Desmos
     format = 'plain-text';
   }
   expressions = uniqueExpressions(expressions);
-  if (expressions.length === 0) throw new Error('No Desmos formulas were found. Use a .desmos export, JSON with latex fields, or one formula per line.');
+  if (expressions.length === 0) throw new Error('No Desmos formulas were found. Use JSON with formula fields or a text file with one formula per line.');
   if (!viewport) warnings.push('No graph bounds were found in this file.');
   const hidden = expressions.filter((expression) => expression.hidden).length;
-  if (hidden) warnings.push(`${hidden} imported expression${hidden === 1 ? '' : 's'} are hidden in Desmos.`);
+  if (hidden) warnings.push(`The file contains ${hidden} hidden expression${hidden === 1 ? '' : 's'}.`);
   return { filename, format, expressions, viewport, sliders: sliderNames(expressions), warnings };
 }
 

@@ -44,6 +44,12 @@ For every frame:
 
 In every animated preset, the app converts video frames into traced outline curves; it does **not** recover the video's original mathematical equations or preserve its exact pixels, colors, or audio. Under **More Desmos settings**, a larger point budget and more contours can keep more detail but may increase lag. **Curve simplification** controls small bends: move left to keep them (more complex), or right to remove them (simpler curves). The exporter caps each generated list at 9,800 points as a safety limit and splits the animation into sections. At 40 frames per section, the maximum budget allows about 245 points per picture, so the effective outline-slot count can also be lower than the selected maximum. After generating formulas, use the displayed x/y bounds in Desmos **Graph Settings** if the graph appears blank.
 
+### Opening or importing existing Desmos work
+
+Desmos's regular Graphing Calculator can open a shared graph link and import a linked graph into a new graph. To import one, open a blank graph and paste the share link into an empty expression line. To add an image, choose **+ Add Item → Image** or drag the image into the expression list.
+
+Desmosify's local-file inspector reads JSON files containing Desmos formulas or text files with one formula per line. It only inspects those files in your browser; it does not upload a file to Desmos or load graph-state JSON into the calculator. Use **Copy formulas to paste into Desmos** to copy expression text from a supported file, then paste it into an empty expression line. For an existing saved graph, use the share-link workflow instead.
+
 **Dithering is intentionally not a line-tracing option.** Floyd–Steinberg dithering creates dot patterns to represent shades in a limited-color image. The edge detector would trace those dots as many extra marks, making an already-complex Desmos graph busier. Dithering would make more sense as a separate stipple/halftone drawing style, not as a switch for clean outlines. The source aspect ratio is already preserved automatically, so a separate fit/stretch control is not needed for the current output.
 
 Frame tracing and outline simplification run in CPU workers. Video decoding may use browser/hardware acceleration when available, but the app does not currently use WebGPU for tracing. The worker count starts from the browser-reported logical CPU count and is capped at 12 by default; the advanced control allows up to 32, but more workers can use more memory, heat, and battery, especially on phones.
