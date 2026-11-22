@@ -31,7 +31,7 @@
       <div class="workspace">
         <div class="work-column">
           <section class="card step-card" aria-labelledby="video-heading">
-            <div class="section-heading"><span class="step-number">1</span><div><p class="section-kicker">START HERE</p><h2 id="video-heading">Choose a video</h2><p class="section-help">Pick a clip from your device. It is read here in your browser, not uploaded.</p></div></div>
+            <div class="section-heading"><span class="step-number">1</span><div><p class="section-kicker">START HERE</p><h2 id="video-heading">Choose a video</h2><p class="section-help">Pick a clip from your device. It is read here in your browser, not uploaded. For the closest line structure, use the original size.</p></div></div>
             <label id="drop" class="drop" for="file">
               <input id="file" type="file" accept="video/*,.mp4,.mov,.webm,.mkv" />
               <span class="upload-icon" aria-hidden="true">↑</span>
@@ -44,12 +44,12 @@
           <section class="card step-card" aria-labelledby="look-heading">
             <div class="section-heading"><span class="step-number">2</span><div><p class="section-kicker">MAKE IT YOURS</p><h2 id="look-heading">Choose the look</h2><p class="section-help">The blue sliders change the drawing. Your starting choices are ready to go.</p></div></div>
             <div class="preset-block video-preset-block">
-              <label class="setting" for="videoPreset"><span class="setting-title">Video quality preset</span><select id="videoPreset" aria-describedby="videoPresetHelp" disabled><option value="source">More pixels — keep original size</option><option value="720">Medium — up to 720p</option><option value="detail">More detail — find smaller lines</option><option value="quality">High quality — full size + detail</option><option value="360">Quick &amp; small — up to 360p</option><option value="custom">My own settings</option></select></label>
+              <label class="setting" for="videoPreset"><span class="setting-title">Video quality preset</span><select id="videoPreset" aria-describedby="videoPresetHelp" disabled><option value="fidelity">Preserve detail — original size</option><option value="balanced">Balanced — up to 720p</option><option value="clean">Cleaner lines — fewer details</option><option value="custom">My own settings</option></select></label>
               <p id="videoPresetHelp" class="help" role="status" aria-live="polite">Choose a video first to use a video quality preset.</p>
             </div>
             <div class="setting-grid">
               <label class="setting"><span class="setting-title">Video size</span><select id="size" aria-describedby="size-help"><option value="source">Keep the video size</option></select><span id="size-help" class="help">The finished video’s height. Bigger can look sharper, but takes longer to make.</span></label>
-              <label class="setting"><span class="setting-title">Find tiny lines</span><span class="range-line"><input id="detail" type="range" value="1" min="0.25" max="2" step="0.25" aria-describedby="detail-help" /><output id="detailValue" class="range-value" for="detail">1×</output></span><span id="detail-help" class="help">Move right to look for smaller shapes. This can take longer.</span></label>
+              <label class="setting"><span class="setting-title">Find tiny lines</span><span class="range-line"><input id="detail" type="range" value="1" min="0.25" max="2" step="0.25" aria-describedby="detail-help" /><output id="detailValue" class="range-value" for="detail">1×</output></span><span id="detail-help" class="help">Move right to preserve smaller shapes. At 1.5× or 2×, processing takes longer and needs more memory.</span></label>
               <label class="setting setting-wide"><span class="setting-title">Keep more or fewer lines</span><span class="range-line"><input id="cutoff" type="range" value="0.1" min="0" max="1" step="0.05" aria-describedby="cutoff-help" /><output id="cutoffValue" class="range-value" for="cutoff">0.10</output></span><span class="range-ends"><span>More lines</span><span>Fewer, stronger lines</span></span><span id="cutoff-help" class="help">Move right to remove faint details if your drawing looks too busy.</span></label>
             </div>
             <div class="toggle-grid">
@@ -69,8 +69,8 @@
                 <label class="setting"><span class="setting-title">Workers at once</span><input id="threads" type="number" min="1" max="32" step="1" /><span class="help">Workers share the job. More can be faster, but use more of your computer.</span></label>
               </div>
               <div class="toggle-grid advanced-toggles">
-                <label class="toggle-card"><input id="dedup" type="checkbox" checked /><span class="switch-look" aria-hidden="true"></span><span><strong>Skip almost-the-same pictures</strong><small>Reuses a picture if the next one barely changed. This can save time.</small></span></label>
-                <label class="toggle-card"><input id="preserveLines" type="checkbox" /><span class="switch-look" aria-hidden="true"></span><span><strong>Keep tiny outlines</strong><small>Keeps short lines and small loops that would usually be dropped as specks. It can also keep extra noise.</small></span></label>
+                <label class="toggle-card"><input id="dedup" type="checkbox" checked /><span class="switch-look" aria-hidden="true"></span><span><strong>Skip almost-the-same pictures</strong><small>Faster, but can hide small movement. Turn it off for fast animation or the closest frame-by-frame match.</small></span></label>
+                <label class="toggle-card"><input id="preserveLines" type="checkbox" /><span class="switch-look" aria-hidden="true"></span><span><strong>Keep tiny outlines</strong><small>Preserves short lines and small loops. It helps detail, but busy backgrounds may become noisier.</small></span></label>
                 <label class="toggle-card"><input id="vfr" type="checkbox" /><span class="switch-look" aria-hidden="true"></span><span><strong>Join still moments</strong><small>Can make a smaller video. Some editing apps prefer even timing.</small></span></label>
                 <label class="toggle-card audio-option is-unavailable"><input id="audio" type="checkbox" checked disabled /><span class="switch-look" aria-hidden="true"></span><span><strong>Keep the video's sound</strong><small id="audioHelp">Choose a video first to check for sound.</small></span></label>
               </div>
@@ -113,6 +113,12 @@
                 </section>
               </article>
             </div>
+            <section class="import-panel" aria-labelledby="import-heading">
+              <div class="import-heading"><div><h3 id="import-heading">Inspect an existing Desmos file</h3><p class="help">Already have a <code>.desmos</code>, JSON, or formula text file? Drop it here to see exactly what it contains. It stays on this device.</p></div><label class="button-secondary import-button" for="desmosImportFile">Choose file<input id="desmosImportFile" type="file" accept=".desmos,.json,.txt,text/plain,application/json" /></label></div>
+              <label id="desmosImportDrop" class="import-drop" for="desmosImportFile"><span class="upload-icon" aria-hidden="true">↑</span><span id="desmosImportName" class="drop-title">Drop a Desmos file here or click to choose one</span><small>.desmos, .json, or .txt · up to 8 MB</small></label>
+              <p id="desmosImportStatus" class="help" role="status" aria-live="polite">Nothing imported yet.</p>
+              <textarea id="desmosImportPreview" class="import-preview" readonly hidden spellcheck="false" aria-label="Imported Desmos formulas"></textarea>
+            </section>
             <div id="progress" class="progress" hidden aria-live="polite"><div class="progress-top"><strong>Making your line art…</strong><span id="progressText"></span></div><div class="bar" role="progressbar" aria-label="Making your line art" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="barFill"></div></div><button id="cancel" class="button-text" type="button" hidden>Stop</button></div>
             <p id="notice" class="notice" role="status" aria-live="polite" hidden></p>
           </section>

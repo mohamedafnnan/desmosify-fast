@@ -132,6 +132,19 @@ button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
 .desmos-copy-guide a { color: #9e3930; font-weight: 800; }
 .desmos-copy-guide kbd { display: inline-block; padding: 0 5px; border: 1px solid #e4d8d6; border-radius: 4px; background: #fff; font: inherit; font-size: 12px; }
 .desmos-copy-guide > .help { display: block; margin: 7px 0 0; }
+.import-panel { display: grid; gap: 10px; margin-top: 14px; padding: 15px; border: 1px solid #d9dff0; border-radius: 15px; background: #f8faff; }
+.import-heading { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
+.import-heading h3 { margin: 0; color: var(--ink); font-size: 15px; font-weight: 900; }
+.import-heading p { margin: 3px 0 0; }
+.import-heading code { padding: 1px 4px; border-radius: 4px; background: #e9eef9; color: var(--blue-dark); font: inherit; font-size: .92em; }
+.import-button { position: relative; white-space: nowrap; }
+.import-button input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.import-drop { min-height: 76px; display: flex; align-items: center; justify-content: center; gap: 9px; padding: 12px; border: 1px dashed #b9c9e6; border-radius: 12px; background: #fff; cursor: pointer; text-align: center; }
+.import-drop:hover, .import-drop.over { border-color: var(--blue); background: #f0f5ff; }
+.import-drop .upload-icon { width: 28px; height: 28px; font-size: 18px; }
+.import-drop small { color: var(--muted); font-size: 12px; }
+.import-preview { min-height: 150px; max-height: 330px; background: #fff; }
+.import-preview[hidden] { display: none; }
 .export-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .progress { display: grid; gap: 9px; margin-top: 17px; padding: 14px; border: 1px solid #cedaf0; border-radius: 13px; background: var(--blue-soft); }
 .progress[hidden] { display: none; }
@@ -209,6 +222,9 @@ textarea { min-height: 180px; resize: vertical; font-family: ui-monospace, SFMon
   .summary-note { display: block; }
   .export-heading { align-items: stretch; }
   .export-mode-label, .export-heading > button { width: 100%; }
+  .import-heading { display: grid; }
+  .import-button { width: 100%; }
+  .import-drop { display: grid; }
   .page-footer { flex-direction: column; gap: 5px; }
 }
 @media (max-width: 380px) {

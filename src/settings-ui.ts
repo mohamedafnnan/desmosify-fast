@@ -2,18 +2,16 @@ type SettingValue = string | boolean;
 type SettingsSnapshot = Record<string, SettingValue>;
 import type { SourceInfo } from './lib/types.ts';
 
-type VideoPreset = 'source' | '720' | 'detail' | 'quality' | '360' | 'custom';
+type VideoPreset = 'fidelity' | 'balanced' | 'clean' | 'custom';
 type DesmosPreset = 'medium' | 'small' | 'pixels' | 'detail' | 'long' | 'smooth' | 'ultra' | 'custom';
 
 const STORAGE_KEY = 'desmosify-fast.settings.v1';
 const IDS = ['size', 'detail', 'lineWidth', 'threads', 'cutoff', 'curveTolerance', 'smooth', 'grid', 'dedup', 'preserveLines', 'vfr', 'audio', 'frames', 'fps', 'width', 'budget', 'slots', 'videoPreset', 'desmosPreset'] as const;
 const RANGE_IDS = ['detail', 'cutoff', 'curveTolerance'] as const;
 const VIDEO_PRESET_TEXT: Record<VideoPreset, string> = {
-  source: 'Keeps your video’s original size with normal detail. More pixels can look sharper, but may take longer.',
-  '720': 'Uses up to 720p with normal detail. A good balance of sharpness and speed.',
-  detail: 'Uses up to 720p and looks harder for smaller, fainter lines. It can take longer.',
-  quality: 'Keeps the original size and looks harder for smaller, fainter lines. This can take the longest.',
-  '360': 'Uses up to 360p and keeps fewer faint lines. It can make a smaller video faster.',
+  fidelity: 'Keeps the original size, looks harder for small lines, keeps short outlines, and does not reuse nearby frames. This is the closest structural match, but it is the slowest.',
+  balanced: 'Uses up to 720p with normal detail and may reuse nearly identical frames. This is a good everyday balance.',
+  clean: 'Uses up to 720p and removes more faint or tiny details. Choose this when busy backgrounds become distracting.',
   custom: 'Your own video settings. Change the size or sliders to make a different look.',
 };
 const DESMOS_PRESET_TEXT: Record<DesmosPreset, string> = {
@@ -26,12 +24,10 @@ const DESMOS_PRESET_TEXT: Record<DesmosPreset, string> = {
   ultra: 'Uses the frame count and average rate reported for this video, at full video width, with no fixed frame-count ceiling. Variable-frame-rate video is sampled at even timestamps. Long clips make a much bigger formula.',
   custom: 'Your own Desmos settings. Change the numbers in More Desmos settings to fine-tune them.',
 };
-const VIDEO_VALUES: Record<Exclude<VideoPreset, 'custom'>, { size: string; detail: string; cutoff: string; target?: number }> = {
-  source: { size: 'source', detail: '1', cutoff: '0.10' },
-  '720': { size: '720', detail: '1', cutoff: '0.10', target: 720 },
-  detail: { size: '720', detail: '1.5', cutoff: '0.05', target: 720 },
-  quality: { size: 'source', detail: '1.5', cutoff: '0.05' },
-  '360': { size: '360', detail: '0.75', cutoff: '0.15', target: 360 },
+const VIDEO_VALUES: Record<Exclude<VideoPreset, 'custom'>, { size: string; detail: string; cutoff: string; smooth: boolean; dedup: boolean; preserveLines: boolean; target?: number }> = {
+  fidelity: { size: 'source', detail: '1.5', cutoff: '0.05', smooth: true, dedup: false, preserveLines: true },
+  balanced: { size: '720', detail: '1', cutoff: '0.10', smooth: true, dedup: true, preserveLines: false, target: 720 },
+  clean: { size: '720', detail: '0.75', cutoff: '0.18', smooth: true, dedup: true, preserveLines: false, target: 720 },
 };
 const DESMOS_VALUES: Record<Exclude<DesmosPreset, 'custom'>, { frames: string; fps: string; width: string; budget: string; slots: string; curveTolerance: string }> = {
   medium: { frames: '40', fps: '8', width: '200', budget: '9000', slots: '48', curveTolerance: '0.6' },
@@ -154,6 +150,9 @@ export function initializeSettingsUI() {
     sizeSelect.value = Array.from(sizeSelect.options).some((option) => option.value === preferredSize) ? preferredSize : 'source';
     input('detail').value = values.detail;
     input('cutoff').value = values.cutoff;
+    (input('smooth') as HTMLInputElement).checked = values.smooth;
+    (input('dedup') as HTMLInputElement).checked = values.dedup;
+    (input('preserveLines') as HTMLInputElement).checked = values.preserveLines;
     for (const id of RANGE_IDS) updateReadout(id);
     showVideoHelp(useSource ? `This video is ${sourceHeight}p, so it keeps its original size.` : '');
   };
@@ -214,7 +213,9 @@ export function initializeSettingsUI() {
     videoPreset.value = String(values.videoPreset ?? 'custom');
     desmosPreset.value = String(values.desmosPreset ?? 'custom');
     if (desmosPreset.value === 'full') desmosPreset.value = 'ultra';
-    if (!['source', '720', 'detail', 'quality', '360', 'custom'].includes(videoPreset.value)) videoPreset.value = 'custom';
+    const oldPresetMap: Record<string, string> = { source: 'fidelity', quality: 'fidelity', detail: 'balanced', '720': 'balanced', '360': 'clean' };
+    videoPreset.value = oldPresetMap[videoPreset.value] ?? videoPreset.value;
+    if (!['fidelity', 'balanced', 'clean', 'custom'].includes(videoPreset.value)) videoPreset.value = 'custom';
     if (!['medium', 'small', 'pixels', 'detail', 'long', 'smooth', 'ultra', 'custom'].includes(desmosPreset.value)) desmosPreset.value = 'custom';
     for (const id of RANGE_IDS) updateReadout(id);
     showVideoHelp();
@@ -308,7 +309,7 @@ export function initializeSettingsUI() {
     undoSnapshot = snapshot();
     apply(defaults);
     if (sourceInfo !== null) syncForSource(sourceInfo);
-    else applyVideoPreset('source');
+    else applyVideoPreset('fidelity');
     undoButton.hidden = false;
     dialog.close();
     writeSettings('Settings reset. You can undo this change.');

@@ -6,6 +6,7 @@ import type { Params, SourceInfo } from './lib/types.ts';
 import { collectFrames, renderVideo } from './orchestrator.ts';
 import type { Progress, RunStats } from './orchestrator.ts';
 import { probe } from './probe.ts';
+import { parseDesmosImport } from './lib/desmos-import.ts';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const num = (id: string) => Number($<HTMLInputElement>(id).value);
@@ -143,6 +144,44 @@ drop.addEventListener('drop', (e) => {
   e.preventDefault();
   drop.classList.remove('over');
   void accept(e.dataTransfer?.files[0]);
+});
+const desmosImportFile = $<HTMLInputElement>('desmosImportFile');
+const desmosImportDrop = $<HTMLLabelElement>('desmosImportDrop');
+const desmosImportName = $<HTMLElement>('desmosImportName');
+const desmosImportStatus = $<HTMLParagraphElement>('desmosImportStatus');
+const desmosImportPreview = $<HTMLTextAreaElement>('desmosImportPreview');
+async function inspectDesmosFile(candidate: File | undefined) {
+  if (!candidate) return;
+  desmosImportFile.value = '';
+  desmosImportName.textContent = candidate.name;
+  desmosImportStatus.textContent = 'Reading your file…';
+  desmosImportPreview.hidden = true;
+  try {
+    const parsed = parseDesmosImport(await candidate.text(), candidate.name);
+    const bounds = parsed.viewport
+      ? `bounds x ${parsed.viewport.xmin} to ${parsed.viewport.xmax}, y ${parsed.viewport.ymin} to ${parsed.viewport.ymax}`
+      : 'no graph bounds found';
+    const sliderText = parsed.sliders.length ? `sliders/variables: ${parsed.sliders.join(', ')}` : 'no simple slider definitions found';
+    const warningText = parsed.warnings.length ? ` ${parsed.warnings.join(' ')}` : '';
+    desmosImportStatus.textContent = `${parsed.expressions.length} formula${parsed.expressions.length === 1 ? '' : 's'} imported · ${bounds} · ${sliderText}.${warningText}`;
+    desmosImportPreview.value = parsed.expressions
+      .map((expression, index) => `${index + 1}. ${expression.latex}${expression.hidden ? '  [hidden]' : ''}`)
+      .join('\n');
+    desmosImportPreview.hidden = false;
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : 'The browser could not read this file.';
+    desmosImportStatus.textContent = reason;
+    desmosImportPreview.value = '';
+    desmosImportPreview.hidden = true;
+  }
+}
+desmosImportFile.addEventListener('change', () => void inspectDesmosFile(desmosImportFile.files?.[0]));
+desmosImportDrop.addEventListener('dragover', (e) => (e.preventDefault(), desmosImportDrop.classList.add('over')));
+desmosImportDrop.addEventListener('dragleave', () => desmosImportDrop.classList.remove('over'));
+desmosImportDrop.addEventListener('drop', (e) => {
+  e.preventDefault();
+  desmosImportDrop.classList.remove('over');
+  void inspectDesmosFile(e.dataTransfer?.files[0]);
 });
 $<HTMLInputElement>('cutoff').addEventListener('input', () => {
   $('cutoffValue').textContent = num('cutoff').toFixed(2);
