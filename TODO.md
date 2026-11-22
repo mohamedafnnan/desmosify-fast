@@ -1,5 +1,14 @@
 # TODO
 
+## Plug-and-play Desmos handoff and share links
+
+- [x] Add a **Copy & Open Desmos** action that copies the currently selected formulas and opens a blank Desmos calculator; explain that the user must paste once because the browser cannot paste into another site automatically.
+- [x] Generate a portable Desmosify result link that carries the exact selected formulas and setup metadata in a compressed URL fragment, so opening it restores a ready-to-copy drawing without the original video or a server/API key.
+- [x] On shared-result links, show the exact graph bounds and animation-slider setup, plus Copy formulas and Copy & Open Desmos actions; clearly state that the original video is not included and that the user still pastes into Desmos and uses Desmos's Share flow for a native graph link.
+- [x] Reject malformed or oversized share payloads with a plain-language recovery hint; ensure changing the drawing invalidates its old generated link.
+
+Validation for this update: `npm run build`, `npm test` (25 passing), and `git diff --check` passed; checked that the share UI selectors resolve to unique HTML elements.
+
 ## Desmos graph links and local formula files
 
 - [x] Let users enter an HTTPS Desmos Graphing Calculator share link and open it in a new tab; reject non-Desmos, non-HTTPS, and non-Graphing-Calculator URLs.

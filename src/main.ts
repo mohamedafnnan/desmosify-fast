@@ -8,6 +8,7 @@ import type { Progress, RunStats } from './orchestrator.ts';
 import { probe } from './probe.ts';
 import { parseDesmosImport } from './lib/desmos-import.ts';
 import { parseDesmosGraphLink } from './lib/desmos-links.ts';
+import { initializeDesmosShareUI } from './desmos-share-ui.ts';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const num = (id: string) => Number($<HTMLInputElement>(id).value);
@@ -37,6 +38,14 @@ let videoUrl: string | null = null;
 
 type Clip = { frames: Float32Array[]; traceW: number; traceH: number; fps: number };
 let clip: Clip | null = null;
+const desmosSharing = initializeDesmosShareUI(() => clip ? {
+  formulas: $<HTMLTextAreaElement>('latex').value,
+  mode: $<HTMLSelectElement>('exportMode').value === 'clip' ? 'clip' : 'frame',
+  frameCount: clip.frames.length,
+  width: clip.traceW,
+  height: clip.traceH,
+  fps: clip.fps,
+} : null);
 let frameIndex = 0;
 let timer: number | null = null;
 let previewRenderer: FrameRenderer | null = null;
@@ -416,6 +425,14 @@ function refreshExport() {
   }
   const area = $<HTMLTextAreaElement>('latex');
   if (area.value !== text) area.value = text;
+  desmosSharing.invalidateIfChanged({
+    formulas: text,
+    mode: mode === 'clip' ? 'clip' : 'frame',
+    frameCount: clip.frames.length,
+    width: clip.traceW,
+    height: clip.traceH,
+    fps: clip.fps,
+  });
   $('exportNote').textContent = note;
 }
 

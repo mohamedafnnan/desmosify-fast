@@ -39,10 +39,14 @@ For every frame:
 
 - **Current picture:** exports the previewed picture as point lists and `polygon()` expressions. This is a still drawing, not an animation.
 - **Whole clip:** exports an animated drawing. Paste the formulas into Desmos, set the `f` slider from `1` to `K` with a step of `1`, and press play beside `f`. The exporter divides long animations into manageable formula sections while keeping one slider for the full clip.
+- **Copy & Open Desmos:** copies the selected formulas and opens a blank Desmos calculator. Paste once into an empty expression line; browsers do not let this page paste into another site automatically.
+- **Share link:** creates a Desmosify URL with compressed formulas, the still/clip selection, picture count, drawing bounds, and playback rate. Opening it restores a ready-to-copy result without the original video. The video is not uploaded. These are Desmosify result links, not native `desmos.com/calculator/<id>` graph links; after pasting, use Desmos's Share menu to make a native Desmos link.
 - **Smoother full clip:** keeps the source duration but samples at up to 8 pictures per second and caps the trace width at 640 pixels. This makes a smaller export than Ultra and may be easier for Desmos to play, but skips some source frames and has less fine detail.
 - **Ultra / Maximum:** uses the source-reported frame count and average frame rate, with tracing at the source video width; there is no fixed 2,160-frame ceiling. For constant-frame-rate clips, these samples align with source frames. Variable-frame-rate clips are sampled at even timestamps, so they may not correspond one-to-one with encoded source frames. This makes a very large graph that may lag or take a long time to paste, calculate, or animate.
 
 In every animated preset, the app converts video frames into traced outline curves; it does **not** recover the video's original mathematical equations or preserve its exact pixels, colors, or audio. Under **More Desmos settings**, a larger point budget and more contours can keep more detail but may increase lag. **Curve simplification** controls small bends: move left to keep them (more complex), or right to remove them (simpler curves). The exporter caps each generated list at 9,800 points as a safety limit and splits the animation into sections. At 40 frames per section, the maximum budget allows about 245 points per picture, so the effective outline-slot count can also be lower than the selected maximum. After generating formulas, use the displayed x/y bounds in Desmos **Graph Settings** if the graph appears blank.
+
+Share links carry formula text in the URL fragment, compressed where the browser supports it. Very large drawings may exceed the safe link-size limit; reduce the number of pictures, drawing width, or line detail and create a new link. Anyone with a link can read and copy its formulas.
 
 ### Opening or importing existing Desmos work
 
@@ -67,7 +71,7 @@ Frame tracing and outline simplification run in CPU workers. Video decoding may 
 npm install
 npm run dev      # dev server
 npm run build    # static site in dist/
-npm test         # unit tests for the edge detector and tracer
+npm test         # unit tests for edge tracing, export and share-link codecs
 ```
 
 The `.github/workflows/deploy.yml` workflow builds and publishes the site to GitHub Pages on every push to `main`.
@@ -81,6 +85,8 @@ The `.github/workflows/deploy.yml` workflow builds and publishes the site to Git
 | `src/lib/frame.ts` | Frame processor and repeated-frame check |
 | `src/lib/draw.ts` | Desmos-style renderer |
 | `src/lib/desmos.ts` | Desmos expression export |
+| `src/lib/desmos-share.ts` | Compressed, validated Desmosify share-link payloads |
+| `src/desmos-share-ui.ts` | Copy & Open Desmos and shared-result UI |
 | `src/pipeline.worker.ts` | Decode a chunk of frames and trace them |
 | `src/encode.worker.ts` | Draw frames in order and encode the video |
 | `src/orchestrator.ts` | Worker pool, chunk scheduling, backpressure |

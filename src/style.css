@@ -268,3 +268,23 @@ textarea { min-height: 180px; resize: vertical; font-family: ui-monospace, SFMon
 }
 
 .welcome-note, .section-help, .help, .drop-title, .choice-copy p, .guide-list p, .tip-card p, .notice, .settings-status { text-wrap: pretty; }
+
+
+.shared-result:not([hidden]) { display: grid; gap: 14px; margin: 0 0 18px; }
+.shared-result[hidden], .share-link-output[hidden] { display: none; }
+.shared-actions { align-items: stretch; }
+.shared-actions > * { flex: 0 1 auto; }
+.shared-result .section-heading { margin-bottom: 0; }
+.shared-result textarea { max-height: 460px; background: #fbfcff; }
+.convert-another { justify-self: start; }
+.export-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+.share-result-panel { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px; border: 1px solid #f0d8d4; border-radius: 13px; background: #fff9f7; }
+.share-result-panel h3 { margin: 0; color: var(--ink); font-size: 15px; font-weight: 900; }
+.share-result-panel p { margin: 3px 0 0; }
+.share-link-output { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; }
+.share-link-output input { min-width: 0; font-size: 12px; }
+#shareLinkStatus, #desmosOpenStatus { margin: 0; }
+@media (max-width: 680px) {
+  .export-buttons, .share-result-panel, .share-link-output { display: grid; grid-template-columns: 1fr; }
+  .export-buttons button, .share-result-panel > button, .share-link-output > button, .shared-actions > * { width: 100%; }
+}

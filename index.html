@@ -28,7 +28,22 @@
         </div>
       </section>
 
-      <div class="workspace">
+      <section id="sharedResult" class="card shared-result" hidden aria-labelledby="sharedTitle">
+        <div class="section-heading"><span class="result-check" aria-hidden="true">✓</span><div><p class="section-kicker">SHARED DESMOS DRAWING</p><h2 id="sharedTitle">Ready-to-paste Desmos drawing</h2><p id="sharedMeta" class="section-help"></p></div></div>
+        <p id="sharedInstructions" class="help"></p>
+        <div class="row shared-actions">
+          <button id="copyOpenShared" class="button-primary" type="button" disabled>Copy &amp; Open Desmos</button>
+          <button id="copySharedFormulas" class="button-secondary" type="button" disabled>Copy formulas</button>
+          <button id="copyCurrentShareLink" class="button-secondary" type="button" disabled>Copy this result link</button>
+          <a class="button-secondary" href="https://www.desmos.com/calculator" target="_blank" rel="noopener noreferrer">Open Desmos</a>
+        </div>
+        <textarea id="sharedFormulas" readonly hidden spellcheck="false" aria-label="Shared Desmos formulas"></textarea>
+        <p id="sharedStatus" class="help" role="status" aria-live="polite"></p>
+        <p class="help">The link contains formulas and setup, not the original video. After pasting, use Desmos’s Share menu if you need a native Desmos graph link.</p>
+        <a class="button-text convert-another" href="./">Convert another video</a>
+      </section>
+
+      <div id="workspace" class="workspace">
         <div class="work-column">
           <section class="card step-card" aria-labelledby="video-heading">
             <div class="section-heading"><span class="step-number">1</span><div><p class="section-kicker">START HERE</p><h2 id="video-heading">Choose a video</h2><p class="section-help">Pick a clip from your device. It is read here in your browser, not uploaded. For the closest line structure, use the original size.</p></div></div>
@@ -82,7 +97,7 @@
             <div class="output-choices">
               <article class="output-choice"><div class="choice-symbol" aria-hidden="true">▶</div><div class="choice-copy"><h3>A line-art video</h3><p>Watch it here, then download it to your device.</p></div><button id="render" class="button-primary" type="button" disabled>Make a video</button></article>
               <article class="output-choice output-choice-desmos">
-                <div class="choice-symbol desmos-symbol" aria-hidden="true">ƒ</div><div class="choice-copy"><h3>A Desmos drawing</h3><p>Make formulas you can copy and paste into Desmos.</p></div><button id="convert" class="button-secondary" type="button" disabled>Make Desmos formulas</button>
+                <div class="choice-symbol desmos-symbol" aria-hidden="true">ƒ</div><div class="choice-copy"><h3>A Desmos drawing</h3><p>Make formulas, open Desmos with one click, or create a share link.</p></div><button id="convert" class="button-secondary" type="button" disabled>Make Desmos formulas</button>
                 <div class="preset-block desmos-preset-block">
                   <label class="setting" for="desmosPreset"><span class="setting-title">Desmos drawing preset</span><select id="desmosPreset" aria-describedby="desmosPresetHelp"><option value="balanced">Balanced — a short clip to try</option><option value="smooth">Smoother — use the whole clip</option><option value="ultra">Most detail — every source picture</option><option value="custom">My own settings</option></select></label>
                   <p id="desmosPresetHelp" class="help" role="status" aria-live="polite">Uses up to 40 pictures (about 5 seconds), 200 pixels wide. A good first choice that balances detail and size.</p>
@@ -101,12 +116,10 @@
                   <h4 id="desmos-copy-guide-title">Put your drawing into Desmos</h4>
                   <ol>
                     <li>Click <strong>Make Desmos formulas</strong> and wait for the preview.</li>
-                    <li>In the preview, choose <strong>The whole clip</strong>, then click <strong>Copy formulas</strong>.</li>
-                    <li>Open the <a href="https://www.desmos.com/calculator" target="_blank" rel="noopener noreferrer">Desmos Graphing Calculator</a>.</li>
-                    <li>Click an empty expression line and paste: <kbd>Ctrl</kbd> + <kbd>V</kbd> on Windows or <kbd>⌘</kbd> + <kbd>V</kbd> on Mac.</li>
-                    <li>If the graph looks blank, click the wrench, open <strong>Graph Settings</strong>, and enter the x/y-axis bounds shown below. These exact values account for the drawing width and your video’s aspect ratio.</li>
-                    <li>On the <strong>f</strong> slider, click either end number (it may show −10 and 10). Set the lower bound to <strong>1</strong>, the upper bound to the number beside <strong>K</strong>, and the step to <strong>1</strong>.</li>
-                    <li>Click the <strong>▶ play button</strong> beside the <strong>f</strong> slider. Your clip will play from its first frame to its last.</li>
+                    <li>In the preview, choose <strong>The whole clip</strong> for an animation, then click <strong>Copy &amp; Open Desmos</strong>.</li>
+                    <li>In Desmos, click an empty expression line and paste once: <kbd>Ctrl</kbd> + <kbd>V</kbd> on Windows or <kbd>⌘</kbd> + <kbd>V</kbd> on Mac. Browsers do not allow this page to paste into Desmos automatically.</li>
+                    <li>If the graph looks blank, click the wrench, open <strong>Graph Settings</strong>, and enter the x/y-axis bounds shown below. These exact values account for the drawing width and video aspect ratio.</li>
+                    <li>For an animation, set the <strong>f</strong> slider lower bound to <strong>1</strong>, upper bound to the number beside <strong>K</strong>, and step to <strong>1</strong>; then click its <strong>▶ play button</strong>.</li>
                   </ol>
                   <p id="desmosCoordinates" class="help">Make the Desmos formulas to see the exact graph bounds for your drawing here.</p>
                   <p class="help">Ultra / Maximum clips make much bigger formulas. Choose Smoother full clip to keep the duration while sampling fewer frames.</p>
@@ -144,7 +157,17 @@
 
       <section id="result" class="card result-card" hidden aria-labelledby="result-heading"><div class="section-heading"><span class="result-check" aria-hidden="true">✓</span><div><p class="section-kicker">READY</p><h2 id="result-heading">Your video is ready</h2><p class="section-help">Watch it here or save a copy to your device.</p></div></div><video id="video" controls playsinline></video><div class="row result-row"><a id="download" class="button-primary button-link" download>Download video</a><span id="stats" class="metrics"></span></div></section>
 
-      <section id="preview" class="card preview-card" hidden aria-labelledby="preview-heading"><div class="section-heading"><span class="result-check" aria-hidden="true">✓</span><div><p class="section-kicker">READY FOR DESMOS</p><h2 id="preview-heading">Your drawing is ready</h2><p class="section-help">Preview your clip, then copy the formulas into Desmos.</p></div></div><div class="row playback-row"><button id="play" class="button-secondary" type="button">Play clip</button><label class="sr-only" for="scrub">Choose which picture to preview</label><input id="scrub" type="range" min="0" max="0" value="0" /><span id="frameLabel" class="metrics"></span></div><canvas id="canvas"></canvas><div class="export-heading"><div><h3>Copy your Desmos formulas</h3><p class="help">Pick one picture or the whole short clip.</p></div><label class="setting export-mode-label"><span class="sr-only">What should the formulas show?</span><select id="exportMode"><option value="frame">This picture only</option><option value="clip">The whole clip</option></select></label><button id="copy" class="button-primary" type="button">Copy formulas</button><span id="copyStatus" class="help" role="status" aria-live="polite"></span></div><textarea id="latex" readonly spellcheck="false" aria-label="Desmos formulas to copy"></textarea><p id="exportNote" class="help export-note"></p></section>
+            <section id="preview" class="card preview-card" hidden aria-labelledby="preview-heading">
+              <div class="section-heading"><span class="result-check" aria-hidden="true">✓</span><div><p class="section-kicker">READY FOR DESMOS</p><h2 id="preview-heading">Your drawing is ready</h2><p class="section-help">Preview the drawing, then copy it straight to Desmos or make a link that reopens the formulas.</p></div></div>
+              <div class="row playback-row"><button id="play" class="button-secondary" type="button">Play clip</button><label class="sr-only" for="scrub">Choose which picture to preview</label><input id="scrub" type="range" min="0" max="0" value="0" /><span id="frameLabel" class="metrics"></span></div>
+              <canvas id="canvas"></canvas>
+              <div class="export-heading"><div><h3>Copy your Desmos formulas</h3><p class="help">Pick one picture or the whole clip.</p></div><label class="setting export-mode-label"><span class="sr-only">What should the formulas show?</span><select id="exportMode"><option value="clip" selected>The whole clip</option><option value="frame">This picture only</option></select></label><div class="export-buttons"><button id="copy" class="button-primary" type="button">Copy formulas</button><button id="copyOpenDesmos" class="button-secondary" type="button">Copy &amp; Open Desmos</button></div><span id="copyStatus" class="help" role="status" aria-live="polite"></span><span id="desmosOpenStatus" class="help" role="status" aria-live="polite"></span></div>
+              <textarea id="latex" readonly spellcheck="false" aria-label="Desmos formulas to copy"></textarea>
+              <p id="exportNote" class="help export-note"></p>
+              <div class="share-result-panel"><div><h3>Share this ready-to-paste drawing</h3><p class="help">Creates a Desmosify link with these exact formulas and setup. It does not include or upload your video.</p></div><button id="createShareLink" class="button-secondary" type="button">Create &amp; copy share link</button></div>
+              <div id="shareLinkOutput" class="share-link-output" hidden><label class="setting" for="shareLink"><span class="setting-title">Shareable result link</span><input id="shareLink" type="url" readonly /></label><button id="copyShareLink" class="button-secondary" type="button">Copy link again</button></div>
+              <p id="shareLinkStatus" class="help" role="status" aria-live="polite"></p>
+            </section>
 
       <footer class="page-footer"><span id="build" class="metrics"></span><span>Made for curious minds.</span></footer>
     </main>
