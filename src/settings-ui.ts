@@ -3,7 +3,7 @@ type SettingsSnapshot = Record<string, SettingValue>;
 import type { SourceInfo } from './lib/types.ts';
 
 type VideoPreset = 'fidelity' | 'balanced' | 'clean' | 'custom';
-type DesmosPreset = 'medium' | 'small' | 'pixels' | 'detail' | 'long' | 'smooth' | 'ultra' | 'custom';
+type DesmosPreset = 'balanced' | 'smooth' | 'ultra' | 'custom';
 
 const STORAGE_KEY = 'desmosify-fast.settings.v1';
 const IDS = ['size', 'detail', 'lineWidth', 'threads', 'cutoff', 'curveTolerance', 'smooth', 'grid', 'dedup', 'preserveLines', 'vfr', 'audio', 'frames', 'fps', 'width', 'budget', 'slots', 'videoPreset', 'desmosPreset'] as const;
@@ -15,13 +15,9 @@ const VIDEO_PRESET_TEXT: Record<VideoPreset, string> = {
   custom: 'Your own video settings. Change the size or sliders to make a different look.',
 };
 const DESMOS_PRESET_TEXT: Record<DesmosPreset, string> = {
-  medium: 'Up to 40 pictures (about 5 seconds at 8 FPS), 200 pixels wide. A good balance of clip length and detail.',
-  small: 'Up to 20 pictures (about 2.5 seconds at 8 FPS), 160 pixels wide. Makes a smaller formula and a shorter clip.',
-  pixels: 'Up to 40 pictures, 320 pixels wide, with a larger point limit. The copied formula will be bigger.',
-  detail: 'Up to 24 pictures (about 3 seconds at 8 FPS). A shorter clip gives each picture more room for points and shapes.',
-  long: 'Up to 80 pictures (about 10 seconds at 8 FPS). The same point limit is spread across more pictures, so each may show fewer details.',
-  smooth: 'Uses the whole clip at up to 8 FPS and up to 640 pixels wide. It skips some source frames to make a smaller formula that may play more smoothly.',
-  ultra: 'Uses the frame count and average rate reported for this video, at full video width, with no fixed frame-count ceiling. Variable-frame-rate video is sampled at even timestamps. Long clips make a much bigger formula.',
+  balanced: 'Uses up to 40 pictures (about 5 seconds), 200 pixels wide. A good first choice that balances detail and formula size.',
+  smooth: 'Uses the whole clip, sampling up to 8 pictures each second and drawing up to 640 pixels wide. Skipping some pictures makes a smaller formula that may play more smoothly.',
+  ultra: 'Uses every picture the video reports and its full width. This keeps the most detail, but can make a very large formula that takes longer to make and play. Videos with changing frame speed are sampled at even times.',
   custom: 'Your own Desmos settings. Change the numbers in More Desmos settings to fine-tune them.',
 };
 const VIDEO_VALUES: Record<Exclude<VideoPreset, 'custom'>, { size: string; detail: string; cutoff: string; smooth: boolean; dedup: boolean; preserveLines: boolean; target?: number }> = {
@@ -30,11 +26,7 @@ const VIDEO_VALUES: Record<Exclude<VideoPreset, 'custom'>, { size: string; detai
   clean: { size: '720', detail: '0.75', cutoff: '0.18', smooth: true, dedup: true, preserveLines: false, target: 720 },
 };
 const DESMOS_VALUES: Record<Exclude<DesmosPreset, 'custom'>, { frames: string; fps: string; width: string; budget: string; slots: string; curveTolerance: string }> = {
-  medium: { frames: '40', fps: '8', width: '200', budget: '9000', slots: '48', curveTolerance: '0.6' },
-  small: { frames: '20', fps: '8', width: '160', budget: '6000', slots: '32', curveTolerance: '0.9' },
-  pixels: { frames: '40', fps: '8', width: '320', budget: '9800', slots: '64', curveTolerance: '0.4' },
-  detail: { frames: '24', fps: '8', width: '280', budget: '9800', slots: '96', curveTolerance: '0.3' },
-  long: { frames: '80', fps: '8', width: '200', budget: '9800', slots: '48', curveTolerance: '0.6' },
+  balanced: { frames: '40', fps: '8', width: '200', budget: '9000', slots: '48', curveTolerance: '0.6' },
   smooth: { frames: '720', fps: '8', width: '640', budget: '9000', slots: '48', curveTolerance: '0.6' },
   ultra: { frames: '1', fps: '8', width: '640', budget: '9800', slots: '128', curveTolerance: '0.6' },
 };
@@ -112,13 +104,13 @@ export function initializeSettingsUI() {
   };
   const showDesmosHelp = () => {
     desmosHelp.textContent = desmosPreset.value === 'smooth' && !sourceInfo
-      ? 'Choose a video to use its full duration at up to 8 pictures per second. This skips some source frames to make a smaller formula.'
+      ? 'Choose a video to use the whole clip. It samples up to 8 pictures each second and skips some pictures to make a smaller formula.'
       : desmosPreset.value === 'smooth' && sourceInfo
-        ? `Uses the whole ${sourceInfo.duration.toFixed(1)}-second clip at up to ${Math.min(8, sourceInfo.fps).toFixed(1)} pictures per second and up to ${Math.min(640, sourceInfo.width)} pixels wide. It skips some source frames to make a smaller formula.`
+        ? `Uses the whole ${sourceInfo.duration.toFixed(1)}-second clip, sampling up to ${Math.min(8, sourceInfo.fps).toFixed(1)} pictures each second, at up to ${Math.min(640, sourceInfo.width)} pixels wide. It skips some pictures to make a smaller formula.`
       : desmosPreset.value === 'ultra' && !sourceInfo
-      ? 'Choose a video to use its reported frame count at the source rate and full pixel width. There is no fixed 2,160-frame ceiling. Long clips make a much bigger formula.'
+      ? 'Choose a video to use every picture the video reports and its full width. This keeps the most detail, but can make a very large formula that takes longer to make and play.'
       : desmosPreset.value === 'ultra' && sourceInfo
-        ? `Uses ${Math.round(sourceInfo.frameCount)} source-reported samples at ${sourceInfo.fps.toFixed(2)} FPS and the full ${sourceInfo.width}-pixel width. This is the source count, not a 2,160-frame app cap. Variable-frame-rate video is sampled at even timestamps; long formulas can be very large.`
+        ? `Uses all ${Math.round(sourceInfo.frameCount)} pictures reported for this video at ${sourceInfo.fps.toFixed(2)} FPS and the full ${sourceInfo.width}-pixel width. Videos with changing frame speed are sampled at even times. This keeps the most detail, but can make a very large formula that takes longer to make and play.`
         : DESMOS_PRESET_TEXT[desmosPreset.value as DesmosPreset];
   };
 
@@ -212,11 +204,15 @@ export function initializeSettingsUI() {
     }
     videoPreset.value = String(values.videoPreset ?? 'custom');
     desmosPreset.value = String(values.desmosPreset ?? 'custom');
-    if (desmosPreset.value === 'full') desmosPreset.value = 'ultra';
+    const oldDesmosPresetMap: Record<string, string> = {
+      medium: 'balanced', small: 'custom', pixels: 'custom', detail: 'custom', long: 'custom',
+      full: 'ultra', smooth: 'smooth', ultra: 'ultra',
+    };
+    desmosPreset.value = oldDesmosPresetMap[desmosPreset.value] ?? desmosPreset.value;
     const oldPresetMap: Record<string, string> = { source: 'fidelity', quality: 'fidelity', detail: 'balanced', '720': 'balanced', '360': 'clean' };
     videoPreset.value = oldPresetMap[videoPreset.value] ?? videoPreset.value;
     if (!['fidelity', 'balanced', 'clean', 'custom'].includes(videoPreset.value)) videoPreset.value = 'custom';
-    if (!['medium', 'small', 'pixels', 'detail', 'long', 'smooth', 'ultra', 'custom'].includes(desmosPreset.value)) desmosPreset.value = 'custom';
+    if (!['balanced', 'smooth', 'ultra', 'custom'].includes(desmosPreset.value)) desmosPreset.value = 'custom';
     for (const id of RANGE_IDS) updateReadout(id);
     showVideoHelp();
     showDesmosHelp();
